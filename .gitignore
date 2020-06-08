@@ -3,3 +3,4 @@ pkpd.egg-info
 pints
 venv
 .vscode
+.DS_Store
