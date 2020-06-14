@@ -18,6 +18,7 @@ setup(
 
     # List of dependencies
     install_requires=[
+        'jupyter',
         'numpy>=1.8',
         'pandas',
         'matplotlib>=1.5',
