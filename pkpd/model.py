@@ -8,11 +8,189 @@
 import collections as cs
 
 import myokit
+import numpy as np
+import pints
+
+
+class PintsModel(pints.ForwardModel):
+    """
+    Wrapper for myokit.Model to allow inference with pints.
+    """
+    def __init__(self, model, regimen):
+        super(PintsModel, self).__init__()
+
+        # Instantiate simulation and sensitivity simulation
+        self._simulation = myokit.Simulation(model, regimen)
+        self._psimulation = myokit.PSimulation(model, regimen)
+
+        # Create iterator over state and parameter variables
+        self._state_names = np.array(
+            [state.name() for state in model.states()])
+        self._param_names = np.array(
+            [param.name() for param in model.parameters()])
+
+        # Create mask for inferable initial conditions and parameters
+        self._infer_init_states = np.ones(
+                shape=model.count_states(), dtype=bool)
+        self._infer_params = np.ones(
+                shape=model.count_variables(const=True), dtype=bool)
+
+        # Number inferable initial state values
+        self._n_infer_init_states = model.count_states()
+
+        # Create container for initial values
+        self._initial_states = np.zeros(shape=model.count_states())
+
+        # Create total number of inferable parameters
+        self._n_parameters = model.count_states() + model.count_variables(
+            const=True)
+
+        # Define which variables are logged upon simulation
+        self._logged_vars = self._state_names
+
+    def parameters(self):
+        """
+        Returns names of all parameters and names of parameters that are
+        inferred.
+        """
+
+        # All parameter names (states have initial values)
+        all_parameters = np.append(self._state_names, self._param_names)
+
+        # Parameter that are inferred.
+        infer_parameters = np.append(
+            self._state_names[self._infer_init_states],
+            self._param_names[self._infer_params])
+
+        return all_parameters, infer_parameters
+
+    def fix_parameters(self, values=None):
+        """
+        Fixes parameter values and returns arrays of all parameters and those
+        used for inference. As a result, those parameters are not inferred.
+        If None is passed, all parameters can be inferred. If only specific
+        parameters are supposed to be inferred, a list with None at the
+        appropriate ids can be passed.
+        """
+        # TODO:
+        # myokit.PSimulation does not support to initial values
+        if values is None:
+            # Reset infer mask, so all parameters are inferred
+            self._infer_init_states = np.ones(
+                shape=len(self._infer_init_states), dtype=bool)
+            self._infer_params = np.ones(
+                shape=len(self._infer_params), dtype=bool)
+
+            # Reset initial values for states to all zeros
+            self._initial_states = np.zeros(shape=len(self._initial_states))
+
+            # Set number inferable initial state values to number of all states
+            self._n_infer_init_states = len(self._initial_states)
+
+            # Reset number of inferable parameters
+            self._n_parameters = self._n_infer_init_states + len(
+                self._infer_params)
+
+            return self.parameters
+
+        # Check that one value is passed for each initial condition and
+        # parameter
+        n_states = len(self._n_infer_init_states)
+        n_params = len(self._infer_params)
+        if len(values) != n_states + n_params:
+            raise ValueError(
+                'Not enough values passed. If you do not want to certain'
+                'parameters for inference, please pass `None`.')
+
+        # Get initial states (None are converted to np.nan)
+        self._initial_states[:] = values[:n_states]
+
+        # Update infer mask
+        self._infer_init_states = np.isnan(self._initial_states)
+
+        # Replace np.nan by zeros as default value
+        for ids in range(np.sum(self._infer_init_states)):
+            self._initial_states[ids] = 0
+
+        # Update initial values of states
+        self._simulation.set_default_state(self._initial_states)
+
+        # Update number of inferable initial states
+        self._n_infer_init_states = int(np.sum(self._infer_init_states))
+
+        # Instanstiate parameter values
+        param_values = np.empty(shape=n_params)
+
+        # Get parameter values
+        param_values[:] = values[n_states:]
+
+        # Update infer mask
+        self._infer_params = np.isnan(param_values)
+
+        # Mask fixed parameter values
+        param_values = param_values[~self._infer_params]
+
+        # Fix parameter values
+        for idp, p in enumerate(self._param_names[~self._infer_params]):
+            # Get value
+            value = param_values[idp]
+
+            # Fix parameter
+            self._simulation.set_constant(
+                    var=p, value=value)
+
+        # Update number of parameters
+        self._n_parameters = int(
+            np.sum(self._infer_init_states) + np.sum(self._infer_params))
+
+        return self.parameters
+
+    def simulate(self, parameters, times):
+        """
+        Returns simulated output of model at specified time points.
+
+        Parameters are assumed to be ordered accroding to myokit.model, and
+        initial values before parameter values.
+        """
+        # Reset simulation to default state
+        self._simulation.reset()
+
+        # Update initial state values
+        self._initial_states[self._infer_init_states] = parameters[
+            :self._n_infer_init_states]
+        self._simulation.set_default_state(self._initial_states)
+
+        # Remove initial states from parameter list
+        parameters = parameters[self._n_infer_init_states:]
+
+        # Update parameters
+        for idp, p in enumerate(self._param_names[self._infer_params]):
+            # Fix parameter
+            self._simulation.set_constant(
+                    var=p, value=parameters[idp])
+
+        # Run simulation
+        result = self._simulation.run(
+            duration=times[-1]+1,
+            log=self._logged_vars,
+            log_times=times)
+
+        return result
+
+    def simulateS1(self, parameters, times):
+        pass
+
+    def n_parameters(self):
+        """
+        Returns the number of initial conditions and model parameters
+        that are learned in the inference.
+        """
+        return self._n_parameters
 
 
 class Model(object):
     """
-    Wrapper for myokit.Model.
+    PKPD Model building class.
 
     Model building relies almost entirely on the myokit model api. Wrapper
     adds functionality to simplify route of administration specification and
@@ -208,7 +386,7 @@ class Model(object):
 
     def set_values(self, name, value, unit=None):
         """
-        Sets values of variable names in the specified unit.j
+        Sets values of variable names in the specified unit.
 
         For state variables the initial value is set. For variables defined
         by an algerbaic expression an error is thorwn.
@@ -307,6 +485,18 @@ class Model(object):
             period=period,
             multiplier=multiplier
         )
+
+    def states(self):
+        """
+        See myokit.model.states.
+        """
+        return self._model.states()
+
+    def parameters(self):
+        """
+        Returns an iterator over the parameters of the model.
+        """
+        return self._model.variables(const=True)
 
     def dosing_regimen(self):
         """
@@ -536,6 +726,91 @@ def create_pktgi_model():
         myokit.Divide(
             myokit.Name(amount),
             myokit.Name(volume)
+        )
+    )
+
+    return model
+
+
+def create_tumour_growth_model():
+    r"""
+    Returns a tumour growth myokit model
+
+    .. math::
+        \frac{\text{d}V^s_T}{\text{d}t} = \frac{2\lambda _0\lambda _1 V^s_T}
+        {2\lambda _0 V^s_T + \lambda _1}.
+    """
+    # Instantiate model
+    model = Model()
+
+    # add central compartment
+    central_comp = model.add_compartment('central')
+
+    # add tumour growth variables to central compartment
+    volume_T = central_comp.add_variable('volume_tumor')
+    lambda_0 = central_comp.add_variable('lambda_0')
+    lambda_1 = central_comp.add_variable('lambda_1')
+
+    # bind time
+    time = central_comp.add_variable('time')
+    time.set_binding('time')
+
+    # set intial values (some default values)
+    time.set_rhs(0)
+
+    volume_T.set_rhs(0)
+    lambda_0.set_rhs(0)
+    lambda_1.set_rhs(1)  # avoid ZeroDivisionError
+
+    # set units
+    time.set_unit('day')  # time in days
+
+    volume_T.set_unit('mm^3')  # milimeter cubed
+    lambda_0.set_unit('1 / day')  # per day
+    lambda_1.set_unit('mm^3 / day')  # milimiter cubed per day
+
+    # set preferred representation of units
+    # time days
+    unit = myokit.parse_unit('day')
+    myokit.Unit.register_preferred_representation('day', unit)
+    # rates in 1 / day
+    unit = myokit.parse_unit('1/day')
+    myokit.Unit.register_preferred_representation('1/day', unit)
+    # tumor volume
+    unit = myokit.parse_unit('mm^3')
+    myokit.Unit.register_preferred_representation('mm^3', unit)
+    # linear growth
+    unit = myokit.parse_unit('mm^3/day')
+    myokit.Unit.register_preferred_representation('mm^3/day', unit)
+
+    # set rhs of tumor volume
+    # dot(volume_T) =
+    #  (2 * lambda_0 * lambda_1 * volume_T) /
+    #  (2 * lambda_0 * volume_T + lambda_1) -
+    #  kappa * conc * volume_T
+    volume_T.promote()
+    volume_T.set_rhs(
+        myokit.Divide(
+            myokit.Multiply(
+                myokit.Number(2),
+                myokit.Multiply(
+                    myokit.Name(lambda_0),
+                    myokit.Multiply(
+                        myokit.Name(lambda_1),
+                        myokit.Name(volume_T)
+                    )
+                )
+            ),
+            myokit.Plus(
+                myokit.Multiply(
+                    myokit.Number(2),
+                    myokit.Multiply(
+                        myokit.Name(lambda_0),
+                        myokit.Name(volume_T)
+                    )
+                ),
+                myokit.Name(lambda_1)
+            )
         )
     )
 

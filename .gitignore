@@ -5,3 +5,4 @@ venv
 .vscode
 .DS_Store
 images
+.ipynb_checkpoints
