@@ -734,7 +734,7 @@ def create_pktgi_model():
 
 def create_tumour_growth_model():
     r"""
-    Returns a tumour growth myokit model
+    Returns a tumour growth myokit model.
 
     .. math::
         \frac{\text{d}V^s_T}{\text{d}t} = \frac{2\lambda _0\lambda _1 V^s_T}
@@ -747,7 +747,7 @@ def create_tumour_growth_model():
     central_comp = model.add_compartment('central')
 
     # add tumour growth variables to central compartment
-    volume_T = central_comp.add_variable('volume_tumor')
+    volume_T = central_comp.add_variable('volume_t')
     lambda_0 = central_comp.add_variable('lambda_0')
     lambda_1 = central_comp.add_variable('lambda_1')
 
@@ -786,8 +786,7 @@ def create_tumour_growth_model():
     # set rhs of tumor volume
     # dot(volume_T) =
     #  (2 * lambda_0 * lambda_1 * volume_T) /
-    #  (2 * lambda_0 * volume_T + lambda_1) -
-    #  kappa * conc * volume_T
+    #  (2 * lambda_0 * volume_T + lambda_1)
     volume_T.promote()
     volume_T.set_rhs(
         myokit.Divide(
