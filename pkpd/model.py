@@ -738,7 +738,12 @@ def create_tumour_growth_model():
 
     .. math::
         \frac{\text{d}V^s_T}{\text{d}t} = \frac{2\lambda _0\lambda _1 V^s_T}
-        {2\lambda _0 V^s_T + \lambda _1}.
+        {2\lambda _0 V^s_T + \lambda _1},
+
+    where the tumour volume :math:`V^s_T` is measured in :math:`\text{cm}^3`,
+    the exponential growth rate :math:`\lambda _0` is mesured in
+    :math:`\text{day}` and the linear growth rate :math:`\lambda _1` is
+    measured in :math:`\text{cm}^3/\text{day}`.
     """
     # Instantiate model
     model = Model()
@@ -747,7 +752,7 @@ def create_tumour_growth_model():
     central_comp = model.add_compartment('central')
 
     # add tumour growth variables to central compartment
-    volume_T = central_comp.add_variable('volume_t')
+    volume_t = central_comp.add_variable('volume_t')
     lambda_0 = central_comp.add_variable('lambda_0')
     lambda_1 = central_comp.add_variable('lambda_1')
 
@@ -755,40 +760,40 @@ def create_tumour_growth_model():
     time = central_comp.add_variable('time')
     time.set_binding('time')
 
-    # set intial values (some default values)
-    time.set_rhs(0)
-
-    volume_T.set_rhs(0)
-    lambda_0.set_rhs(0)
-    lambda_1.set_rhs(1)  # avoid ZeroDivisionError
-
-    # set units
-    time.set_unit('day')  # time in days
-
-    volume_T.set_unit('mm^3')  # milimeter cubed
-    lambda_0.set_unit('1 / day')  # per day
-    lambda_1.set_unit('mm^3 / day')  # milimiter cubed per day
-
     # set preferred representation of units
-    # time days
+    # time in days
     unit = myokit.parse_unit('day')
     myokit.Unit.register_preferred_representation('day', unit)
     # rates in 1 / day
     unit = myokit.parse_unit('1/day')
     myokit.Unit.register_preferred_representation('1/day', unit)
     # tumor volume
-    unit = myokit.parse_unit('mm^3')
-    myokit.Unit.register_preferred_representation('mm^3', unit)
+    unit = myokit.parse_unit('cm^3')
+    myokit.Unit.register_preferred_representation('cm^3', unit)
     # linear growth
-    unit = myokit.parse_unit('mm^3/day')
-    myokit.Unit.register_preferred_representation('mm^3/day', unit)
+    unit = myokit.parse_unit('cm^3/day')
+    myokit.Unit.register_preferred_representation('cm^3/day', unit)
+
+    # set intial values (some default values) and units
+    time.set_rhs(0)
+
+    volume_t.set_rhs(0)
+    lambda_0.set_rhs(0)
+    lambda_1.set_rhs(1)  # avoid ZeroDivisionError
+
+    # set units
+    time.set_unit('day')  # time in days
+
+    volume_t.set_unit('cm^3')  # milimeter cubed
+    lambda_0.set_unit('1 / day')  # per day
+    lambda_1.set_unit('cm^3 / day')  # milimiter cubed per day
 
     # set rhs of tumor volume
-    # dot(volume_T) =
-    #  (2 * lambda_0 * lambda_1 * volume_T) /
-    #  (2 * lambda_0 * volume_T + lambda_1)
-    volume_T.promote()
-    volume_T.set_rhs(
+    # dot(volume_t) =
+    #  (2 * lambda_0 * lambda_1 * volume_t) /
+    #  (2 * lambda_0 * volume_t + lambda_1)
+    volume_t.promote()
+    volume_t.set_rhs(
         myokit.Divide(
             myokit.Multiply(
                 myokit.Number(2),
@@ -796,7 +801,7 @@ def create_tumour_growth_model():
                     myokit.Name(lambda_0),
                     myokit.Multiply(
                         myokit.Name(lambda_1),
-                        myokit.Name(volume_T)
+                        myokit.Name(volume_t)
                     )
                 )
             ),
@@ -805,12 +810,18 @@ def create_tumour_growth_model():
                     myokit.Number(2),
                     myokit.Multiply(
                         myokit.Name(lambda_0),
-                        myokit.Name(volume_T)
+                        myokit.Name(volume_t)
                     )
                 ),
                 myokit.Name(lambda_1)
             )
         )
     )
+
+    # Validate model
+    model.validate()
+
+    # TODO: Check units
+    # model.check_units()
 
     return model
