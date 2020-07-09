@@ -1,7 +1,7 @@
 # ErlotinibGefitinib
 
 In this project the PKPD properties of Erlotinib and Gefitinib are investigated. In particular, we re-analyse a study published in 2016 [1],
-which aimed at building a translational PKPD model from mice data to predict tumour stasis inducing dosing regimes in humans. In this project
+which aimed at building a translational PKPD model from mice data to predict tumour stasis inducing dosing regimens in humans. In this project
 we will in first instance focus on reproducing the modelling results in [1]. In a second step, we will question the modelling choices and try to
 introduce a robust and reproducible PKPD modelling approach.
 
