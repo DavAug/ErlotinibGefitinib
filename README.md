@@ -6,7 +6,7 @@ we will in first instance focus on reproducing the modelling results in [1]. In 
 introduce a robust and reproducible PKPD modelling approach.
 
 The analysis of the data, and the modelling of the PKPD is organised in Jupyter notebooks. We start with modelling the control group, 
-and will gradually build up the inference of the Erlotinib/ Gefitinib specfic parameters.
+and gradually build up the inference of the Erlotinib/ Gefitinib specfic parameters.
 
 ## Notebook structure
 
