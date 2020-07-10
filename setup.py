@@ -21,7 +21,7 @@ setup(
         'jupyter',
         'numpy>=1.8',
         'pandas',
-        'matplotlib>=1.5',
+        'plotly',
         'myokit>=1.29',
         'pints @ git+git://github.com/pints-team/pints.git#egg=pints'
     ],
