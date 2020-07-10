@@ -11,8 +11,8 @@ and gradually build up the inference of the Erlotinib/ Gefitinib specfic paramet
 ## Notebook structure
 
 - [Overview](https://github.com/DavAug/ErlotinibGefitinib/blob/master/notebooks/overview/overview.ipynb)
-- [Growth modelling in absence of treatment](https://github.com/DavAug/ErlotinibGefitinib/blob/master/notebooks/control_growth/data_preparation.ipynb)
-    - [Data](https://github.com/DavAug/ErlotinibGefitinib/blob/master/notebooks/control_growth/data_preparation.ipynb)
+- [Growth modelling in absence of treatment](https://nbviewer.jupyter.org/github/DavAug/ErlotinibGefitinib/blob/master/notebooks/control_growth/data_preparation.ipynb)
+    - [Data](https://nbviewer.jupyter.org/github/DavAug/ErlotinibGefitinib/blob/master/notebooks/control_growth/data_preparation.ipynb)
     - [Pooled model](https://github.com/DavAug/ErlotinibGefitinib/blob/master/control_growth_analysis.ipynb)
     - Unpooled model
     - Hierarchical model
