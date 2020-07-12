@@ -4,7 +4,7 @@ In this project the pharmacokinetic and pharmacodynamic (PKPD) properties of Erl
 introduce a robust and reproducible PKPD modelling approach.
 
 The analysis of the data, and the modelling of the PKPD is organised in Jupyter notebooks. We start with modelling the control group, 
-and gradually build up the inference of the Erlotinib/ Gefitinib specfic parameters.
+and gradually build up the inference of the Erlotinib/Gefitinib specific parameters. This will allow us to explore safe and efficacious dosing regimens across individuals *in silico*.
 
 ## Notebook structure
 
