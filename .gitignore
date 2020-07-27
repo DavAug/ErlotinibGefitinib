@@ -7,3 +7,4 @@ venv
 images
 .ipynb_checkpoints
 Literature
+slides/plotly.js
