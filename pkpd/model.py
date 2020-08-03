@@ -840,3 +840,71 @@ def create_tumour_growth_model():
     # model.check_units()
 
     return model
+
+
+def create_dimless_tumour_growth_model():
+    r"""
+    Returns a tumour growth myokit model.
+
+    .. math::
+        \frac{\text{d}v}{\text{d}\tau} = \frac{a_1 v}
+        {v + a_0},
+
+    where the tumour volume :math:`v` and time :math:`\tau` are dimensionless
+    and measured in characteristic scales :math:`V^c_T` and :math:`t^c`.
+    The model parameters :math:`a_0` and :math:`a_1` are also dimensionless.
+    """
+    # Instantiate model
+    model = Model()
+
+    # Add central compartment
+    central_comp = model.add_compartment('central')
+
+    # Add tumour growth variables to central compartment
+    volume_t = central_comp.add_variable('volume_t')
+    a_0 = central_comp.add_variable('a_0')
+    a_1 = central_comp.add_variable('a_1')
+
+    # Bind time
+    time = central_comp.add_variable('time')
+    time.set_binding('time')
+
+    # Set intial values (some default values) and units
+    time.set_rhs(0)
+
+    volume_t.set_rhs(0)
+    a_0.set_rhs(1)  # Avoid ZeroDivisionError
+    a_1.set_rhs(0)
+
+    # Set units
+    time.set_unit('dimensionless')
+
+    volume_t.set_unit('dimensionless')
+    a_0.set_unit('dimensionless')
+    a_1.set_unit('dimensionless')
+
+    # Set rhs of tumor volume
+    # dot(volume_t) =
+    #  (a_1 * volume_t) /
+    #  (volume_t + a_0)
+    volume_t.promote()
+    volume_t.set_rhs(
+        myokit.Divide(
+            myokit.Multiply(
+                myokit.Name(a_1),
+                myokit.Name(volume_t)
+            ),
+            myokit.Plus(
+                myokit.Name(volume_t),
+                myokit.Name(a_0)
+            )
+        )
+    )
+
+    # Validate model
+    model.validate()
+
+    # Check units
+    model.check_units()
+
+    return model
