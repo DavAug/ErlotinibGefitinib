@@ -265,6 +265,15 @@ class Model(object):
         if not amount.is_state():
             raise ValueError
 
+        # Check that model has time bound variable
+        time = self._model.binding(binding='time')
+        if time is None:
+            raise ValueError
+
+        # Get amount and time unit from dose compartment
+        amount_unit = amount.unit()
+        time_unit = time.unit()
+
         # TODO: Remove previously set roa compartments, variables and
         # expressions.
 
@@ -289,6 +298,10 @@ class Model(object):
             # Set default values for amount and absorption rate
             amount_de.set_rhs(0)
             k_a.set_rhs(0)
+
+            # Set units
+            amount_de.set_unit(amount_unit)
+            k_a.set_unit(1/time_unit)
 
             # Promote amount to state variable
             amount_de.promote()
@@ -328,7 +341,9 @@ class Model(object):
         dose_rate.set_rhs(0)
         regimen.set_rhs(0)
 
-        #TODO: Set units
+        # Set units
+        dose_rate.set_unit(amount_unit/time_unit)
+        regimen.set_unit('dimensionless')
 
         # Bind regimen to myokit pacer (so regimen can be adjusted with
         # myokit.Protocol)
@@ -598,17 +613,17 @@ def create_pktgi_model():
     # Instantiate model
     model = Model()
 
-    # add central compartment
+    # Add central compartment
     central_comp = model.add_compartment('central')
 
-    # add PK variables and constants to central compartment
+    # Add PK variables and constants to central compartment
     amount = central_comp.add_variable('amount')
-    volume = central_comp.add_variable('volume')
+    volume_c = central_comp.add_variable('volume_c')
     k_e = central_comp.add_variable('k_e')
     conc = central_comp.add_variable('conc')
 
     # add PD variables to central compartment
-    volume_T = central_comp.add_variable('volume_tumor')
+    volume_t = central_comp.add_variable('volume_t')
     lambda_0 = central_comp.add_variable('lambda_0')
     lambda_1 = central_comp.add_variable('lambda_1')
     kappa = central_comp.add_variable('kappa')
@@ -621,11 +636,11 @@ def create_pktgi_model():
     time.set_rhs(0)
 
     amount.set_rhs(0)
-    volume.set_rhs(1)  # avoid ZeroDivisionError
+    volume_c.set_rhs(1)  # avoid ZeroDivisionError
     k_e.set_rhs(0)
     conc.set_rhs(0)
 
-    volume_T.set_rhs(0)
+    volume_t.set_rhs(0)
     lambda_0.set_rhs(0)
     lambda_1.set_rhs(1)  # avoid ZeroDivisionError
     kappa.set_rhs(0)
@@ -634,13 +649,13 @@ def create_pktgi_model():
     time.set_unit('day')  # time in days
 
     amount.set_unit('mg')  # miligram
-    volume.set_unit('L')  # liter
+    volume_c.set_unit('L')  # liter
     k_e.set_unit('1 / day')  # 1 / day
     conc.set_unit('mg / L')  # miligram / liter
 
-    volume_T.set_unit('mm^3')  # milimeter cubed
+    volume_t.set_unit('cm^3')  # milimeter cubed
     lambda_0.set_unit('1 / day')  # per day
-    lambda_1.set_unit('mm^3 / day')  # milimiter cubed per day
+    lambda_1.set_unit('cm^3 / day')  # milimiter cubed per day
     kappa.set_unit('L / mg / day')  # in reference L / ug / day,
 
     # set preferred representation of units
@@ -661,11 +676,11 @@ def create_pktgi_model():
     myokit.Unit.register_preferred_representation('mg/L', unit)
 
     # tumor volume
-    unit = myokit.parse_unit('mm^3')
-    myokit.Unit.register_preferred_representation('mm^3', unit)
+    unit = myokit.parse_unit('cm^3')
+    myokit.Unit.register_preferred_representation('cm^3', unit)
     # linear growth
-    unit = myokit.parse_unit('mm^3/day')
-    myokit.Unit.register_preferred_representation('mm^3/day', unit)
+    unit = myokit.parse_unit('cm^3/day')
+    myokit.Unit.register_preferred_representation('cm^3/day', unit)
     # potency
     unit = myokit.parse_unit('L/mg/day')
     myokit.Unit.register_preferred_representation('L/mg/day', unit)
@@ -681,12 +696,12 @@ def create_pktgi_model():
     )
 
     # set rhs of tumor volume
-    # dot(volume_T) =
-    #  (2 * lambda_0 * lambda_1 * volume_T) /
-    #  (2 * lambda_0 * volume_T + lambda_1) -
-    #  kappa * conc * volume_T
-    volume_T.promote()
-    volume_T.set_rhs(
+    # dot(volume_t) =
+    #  (2 * lambda_0 * lambda_1 * volume_t) /
+    #  (2 * lambda_0 * volume_t + lambda_1) -
+    #  kappa * conc * volume_t
+    volume_t.promote()
+    volume_t.set_rhs(
         myokit.Minus(
             myokit.Divide(
                 myokit.Multiply(
@@ -695,7 +710,7 @@ def create_pktgi_model():
                         myokit.Name(lambda_0),
                         myokit.Multiply(
                             myokit.Name(lambda_1),
-                            myokit.Name(volume_T)
+                            myokit.Name(volume_t)
                         )
                     )
                 ),
@@ -704,7 +719,7 @@ def create_pktgi_model():
                         myokit.Number(2),
                         myokit.Multiply(
                             myokit.Name(lambda_0),
-                            myokit.Name(volume_T)
+                            myokit.Name(volume_t)
                         )
                     ),
                     myokit.Name(lambda_1)
@@ -714,18 +729,18 @@ def create_pktgi_model():
                 myokit.Name(kappa),
                 myokit.Multiply(
                     myokit.Name(conc),
-                    myokit.Name(volume_T)
+                    myokit.Name(volume_t)
                 )
             )
         )
     )
 
     # set algebraic relation between drug and concentration
-    # conc = amount / volume
+    # conc = amount / volume_c
     conc.set_rhs(
         myokit.Divide(
             myokit.Name(amount),
-            myokit.Name(volume)
+            myokit.Name(volume_c)
         )
     )
 
