@@ -62,6 +62,6 @@ def compute_cumulative_dose_amount(
     # Add cumulative dose amount at start and end of dose to container
     cum_doses[3:-2:2] = np.cumsum(doses[:-1])  # start of doses
     cum_doses[2:-1:2] = np.cumsum(doses)  # end of doses
-    cum_doses[-1] =  np.cumsum(doses)[-1]  # final dose level
+    cum_doses[-1] = np.cumsum(doses)[-1]  # final dose level
 
     return cum_times, cum_doses

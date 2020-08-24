@@ -14,7 +14,7 @@ setup(
     maintainer_email='david.augustin@dtc.ox.ac.uk',
 
     # Packages to include
-    packages=find_packages(include=('pkpd','pkpd.*')),
+    packages=find_packages(include=('pkpd', 'pkpd.*')),
 
     # List of dependencies
     install_requires=[

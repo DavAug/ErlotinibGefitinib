@@ -31,8 +31,6 @@ class HierarchicalLogPosterior(pints.LogPDF):
     :math:`\log \mathbb{P}(\psi | \theta )` is the log_likelihood_hidden, and
     :math:`\log \mathbb{P}(\theta )` is the log_prior.
 
-    The output 
-
     Extends :class:`LogPDF`
     """
     def __init__(self, log_likelihood, log_likelihood_hidden, log_prior):
@@ -48,5 +46,3 @@ class HierarchicalLogPosterior(pints.LogPDF):
         if not isinstance(log_likelihood, pints.LogPDF):
             raise ValueError(
                 'Given log_likelihood must extend pints.LogPDF.')
-
-        # Check dimensions

@@ -134,14 +134,16 @@ def plot_measurements(data):
                     dict(
                         args=[
                             {"visible": [True, False] * n_ids},
-                            {"yaxis": {"title": r'$\text{Tumour volume in cm}^3$'}}],
+                            {"yaxis": {
+                                "title": r'$\text{Tumour volume in cm}^3$'}}],
                         label="Tumour volume",
                         method="update"
                     ),
                     dict(
                         args=[
                             {"visible": [False, True] * n_ids},
-                            {"yaxis": {"title": r'$\text{Body weight in g}$'}}],
+                            {"yaxis": {
+                                "title": r'$\text{Body weight in g}$'}}],
                         label="Body weight",
                         method="update"
                     ),
