@@ -21,7 +21,7 @@ setup(
         'jupyter==1.0.0',
         'myokit==1.30.6',
         'numpy>=1.8',
-        'pandas==1.0.4',
+        'pandas>=0.24',
         'pints @ git+git://github.com/pints-team/pints.git#egg=pints',
         'plotly==4.8.1',
         'tqdm==4.46.1'
