@@ -1,3 +1,6 @@
+[![Unit tests on multiple python versions](https://github.com/DavAug/ErlotinibGefitinib/workflows/Unit%20tests%20(python%20versions)/badge.svg)](https://github.com/DavAug/ErlotinibGefitinib/actions)
+[![Unit tests on multiple operating systems](https://github.com/DavAug/ErlotinibGefitinib/workflows/Unit%20tests%20(OS%20versions)/badge.svg)](https://github.com/DavAug/ErlotinibGefitinib/actions)
+
 # ErlotinibGefitinib
 
 In this project the pharmacokinetic and pharmacodynamic (PKPD) properties of Erlotinib and Gefitinib are investigated. In particular, we re-analyse a study published in 2016 [1], which aimed at building a translational PKPD model from mice data to predict tumour stasis inducing dosing regimens in humans. To this end, we will in first instance focus on reproducing the modelling results. In a second step, we will question the modelling choices and try to
