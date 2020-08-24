@@ -20,7 +20,7 @@ setup(
     install_requires=[
         'jupyter==1.0.0',
         'myokit==1.30.6',
-        'numpy==1.18.5',
+        'numpy>=1.8',
         'pandas==1.0.4',
         'pints @ git+git://github.com/pints-team/pints.git#egg=pints',
         'plotly==4.8.1',
