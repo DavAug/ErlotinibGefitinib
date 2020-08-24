@@ -1,5 +1,5 @@
 #
-# This file belongs to the ErlotinibGefitinib repository.
+# This file is part of the ErlotinibGefitinib repository.
 #
 
 import plotly.colors
