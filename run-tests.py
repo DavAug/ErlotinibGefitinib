@@ -29,24 +29,24 @@ def run_copyright_checks():
 
     with open('LICENSE.md', 'r') as license_file:
         license_text = license_file.read()
-        if 'Copyright (c) 2017-' + current_year in license_text:
+        if 'Copyright (c) ' + current_year in license_text:
             print("Copyright notice in LICENSE.md is up-to-date.")
         else:
             print('Copyright notice in LICENSE.md is NOT up-to-date.')
             year_check = False
 
-    # Recursively walk the pints directory and check copyright header is in
+    # Recursively walk the pkpd directory and check copyright header is in
     # each checked file type
     header_check = True
     checked_file_types = ['.py']
     copyright_header = """#
 # This file is part of the ErlotinibGefitinib repository
-# (https://github.com/DavAug/ErlotinibGefitinib/) which is
-# released under the BSD 3-clause license. See accompanying LICENSE.md for
-# copyright notice and full license details.
+# (https://github.com/DavAug/ErlotinibGefitinib/) which is released under the
+# BSD 3-clause license. See accompanying LICENSE.md for copyright notice and
+# full license details.
 #"""
 
-    for dirname, _, file_list in os.walk('pints'):
+    for dirname, _, file_list in os.walk('pkpd'):
         for f_name in file_list:
             if any([f_name.endswith(x) for x in checked_file_types]):
                 path = os.path.join(dirname, f_name)
