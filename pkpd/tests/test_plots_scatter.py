@@ -18,6 +18,13 @@ import plotly.graph_objects as go
 import pkpd.plots
 
 
+# Unit testing in Python 2 and 3
+try:
+    unittest.TestCase.assertRaisesRegex
+except AttributeError:  # pragma: no python 3 cover
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
+
+
 class TestPlotMeasurements(unittest.TestCase):
     """
     Tests the `pkpd.plots.plot_mesurements` function.
@@ -36,6 +43,22 @@ class TestPlotMeasurements(unittest.TestCase):
             'TIME in day': times,
             'TUMOUR VOLUME in cm^3': volumes,
             'BODY WEIGHT in g': masses})
+
+    def test_bad_input(self):
+
+        data = np.ones(shape=(10, 4))
+
+        self.assertRaisesRegex(
+            ValueError, 'Input data <', pkpd.plots.plot_measurements, data)
+
+    def test_bad_column_keys(self):
+
+        data = self.data.rename(columns={'TIME in day': 'SOMETHING ELSE'})
+
+        print(data.keys())
+
+        self.assertRaisesRegex(
+            ValueError, 'Input data <', pkpd.plots.plot_measurements, data)
 
     def test_create_figure(self):
 
