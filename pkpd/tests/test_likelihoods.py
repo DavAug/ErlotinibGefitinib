@@ -615,10 +615,3 @@ class TestFixedEtaLogLikelihoodWrapper(unittest.TestCase):
             self.multplicative_log_likelihood, eta)
 
         self.assertEqual(wrapped_log_likelihood.n_parameters(), 2)
-
-
-class TestSharedNoiseLogLikelihood(unittest.TestCase):
-    """
-    Tests the `pkpd.SharedNoiseLogLikelihood`.
-    """
-    pass
