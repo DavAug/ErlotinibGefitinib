@@ -1,5 +1,6 @@
 [![Unit tests on multiple python versions](https://github.com/DavAug/ErlotinibGefitinib/workflows/Unit%20tests%20(python%20versions)/badge.svg)](https://github.com/DavAug/ErlotinibGefitinib/actions)
 [![Unit tests on multiple operating systems](https://github.com/DavAug/ErlotinibGefitinib/workflows/Unit%20tests%20(OS%20versions)/badge.svg)](https://github.com/DavAug/ErlotinibGefitinib/actions)
+[![codecov](https://codecov.io/gh/DavAug/ErlotinibGefitinib/branch/master/graph/badge.svg)](https://codecov.io/gh/DavAug/ErlotinibGefitinib)
 
 # ErlotinibGefitinib
 
