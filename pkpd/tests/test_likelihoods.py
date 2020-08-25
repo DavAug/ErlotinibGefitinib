@@ -557,7 +557,7 @@ class TestFixedEtaLogLikelihoodWrapper(unittest.TestCase):
         problem = pints.MultiOutputProblem(model, times, data)
 
         # Create "bad" likelihood
-        log_likelihood = pints.GaussianLogLikelihood(problem)
+        log_likelihood = pints.MultiplicativeGaussianLogLikelihood(problem)
 
         # Check that error is thown when we attempt to fix eta
         eta = 1
