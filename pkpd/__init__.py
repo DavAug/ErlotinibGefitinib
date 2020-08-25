@@ -9,7 +9,3 @@ from ._likelihoods import (  # noqa
     ConstantAndMultiplicativeGaussianLogLikelihood,
     FixedEtaLogLikelihoodWrapper
 )
-
-from ._models import (  # noqa
-    TumourGrowthModel
-)
