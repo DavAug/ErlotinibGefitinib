@@ -14,6 +14,13 @@ import pints.toy
 import pkpd
 
 
+# Unit testing in Python 2 and 3
+try:
+    unittest.TestCase.assertRaisesRegex
+except AttributeError:  # pragma: no python 3 cover
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
+
+
 class TestConstantAndMultiplicativeGaussianLogLikelihood(unittest.TestCase):
 
     @classmethod
@@ -489,3 +496,122 @@ class TestConstantAndMultiplicativeGaussianLogLikelihood(unittest.TestCase):
         score_after = log_likelihood(test_parameters + eps / 2)
         self.assertAlmostEqual(
             deriv[11], (score_after - score_before) / eps[11])
+
+
+class TestFixedEtaLogLikelihoodWrapper(unittest.TestCase):
+    """
+    Tests the `pkpd.FixedEtaLogLikelihoodWrapper`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        # Create single output model
+        model = pints.toy.ConstantModel(1)
+
+        # Generate data
+        times = np.array([1, 2, 3, 4])
+        data = np.array([1, 2, 3, 4]) / 5.0
+
+        # Create problem
+        problem = pints.SingleOutputProblem(model, times, data)
+
+        # Create likelihoods
+        cls.multplicative_log_likelihood = \
+            pints.MultiplicativeGaussianLogLikelihood(problem)
+        cls.c_and_m_log_likelihood = \
+            pkpd.ConstantAndMultiplicativeGaussianLogLikelihood(problem)
+
+    def test_bad_likelihood(self):
+        # Create single output model
+        model = pints.toy.ConstantModel(1)
+
+        # Generate data
+        times = np.array([1, 2, 3, 4])
+        data = np.array([1, 2, 3, 4]) / 5.0
+
+        # Create problem
+        problem = pints.SingleOutputProblem(model, times, data)
+
+        # Create "bad" likelihood
+        log_likelihood = pints.GaussianLogLikelihood(problem)
+
+        # Check that error is thown when we attempt to fix eta
+        eta = 1
+        self.assertRaisesRegex(
+            ValueError, 'This likelihood wrapper is only defined for a ',
+            pkpd.FixedEtaLogLikelihoodWrapper, log_likelihood, eta)
+
+    def test_bad_n_output(self):
+        # Create multi output model
+        model = pints.toy.ConstantModel(3)
+
+        # Generate data
+        times = np.array([1, 2, 3, 4])
+        data = np.array([
+            [10.7, 3.5, 3.8],
+            [1.1, 3.2, -1.4],
+            [9.3, 0.0, 4.5],
+            [1.2, -3, -10]])
+
+        # Create problem
+        problem = pints.MultiOutputProblem(model, times, data)
+
+        # Create "bad" likelihood
+        log_likelihood = pints.GaussianLogLikelihood(problem)
+
+        # Check that error is thown when we attempt to fix eta
+        eta = 1
+        self.assertRaisesRegex(
+            ValueError, 'This likelihood wrapper is only defined for a ',
+            pkpd.FixedEtaLogLikelihoodWrapper, log_likelihood, eta)
+
+    def test_call_multiplicative_log_likelihood(self):
+
+        # Fix eta
+        eta = 1.1
+        wrapped_log_likelihood = pkpd.FixedEtaLogLikelihoodWrapper(
+            self.multplicative_log_likelihood, eta)
+
+        # Check that computed likelihoods agree
+        params = [1, 2]
+        params_plus_eta = [1] + [eta] + [2]
+        self.assertEqual(
+            wrapped_log_likelihood(params),
+            self.multplicative_log_likelihood(params_plus_eta))
+
+    def test_call_constant_and_multiplicative_log_likelihood(self):
+
+        # Fix eta
+        eta = 1.1
+        wrapped_log_likelihood = pkpd.FixedEtaLogLikelihoodWrapper(
+            self.c_and_m_log_likelihood, eta)
+
+        # Check that computed likelihoods agree
+        params = [1, 2, 1]
+        params_plus_eta = [1, 2] + [eta] + [1]
+        self.assertEqual(
+            wrapped_log_likelihood(params),
+            self.c_and_m_log_likelihood(params_plus_eta))
+
+    def test_evaluateS1(self):
+
+        # Fix eta
+        eta = 1.1
+        wrapped_log_likelihood = pkpd.FixedEtaLogLikelihoodWrapper(
+            self.multplicative_log_likelihood, eta)
+
+        # Check that computed likelihoods agree
+        params = [1, 2]
+
+        self.assertRaisesRegex(
+            NotImplementedError, 'Method has not been implemented.',
+            wrapped_log_likelihood.evaluateS1, params)
+
+    def test_n_parameters(self):
+
+        # Fix eta
+        eta = 1.1
+        wrapped_log_likelihood = pkpd.FixedEtaLogLikelihoodWrapper(
+            self.multplicative_log_likelihood, eta)
+
+        self.assertEqual(wrapped_log_likelihood.n_parameters(), 2)

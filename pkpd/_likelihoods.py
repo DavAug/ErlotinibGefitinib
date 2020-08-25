@@ -346,8 +346,10 @@ class ConstantAndMultiplicativeGaussianLogLikelihood(
 
 class FixedEtaLogLikelihoodWrapper(pints.LogPDF):
     """
-    Implements log-likelihood wrapper for a
-    `pints.MultiplicativeGaussianLogLikelihood` that allows fixing `eta`.
+    Implements a log-likelihood wrapper for a
+    `pints.MultiplicativeGaussianLogLikelihood` or a
+    `pkpd.ConstantAndMultiplicativeGaussianLogLikelihood` that allows fixing
+    the parameter `eta`.
     """
 
     def __init__(self, log_likelihood, eta):
@@ -378,6 +380,10 @@ class FixedEtaLogLikelihoodWrapper(pints.LogPDF):
         params[-1] = parameters[-1]
 
         return self._log_pdf(params)
+
+    def evaluateS1(self, parameters):
+        raise NotImplementedError(
+            'Method has not been implemented.')
 
     def n_parameters(self):
         return self._log_pdf.n_parameters() - 1
