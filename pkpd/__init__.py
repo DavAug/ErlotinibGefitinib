@@ -29,11 +29,11 @@ class ModelLibrary(object):
 
         # Create model library
         self._model_library = {
-            'Tumour growth without treament':
+            'Tumour growth without treatment':
                 path + 'tumour_growth_without_treatment.xml',
-            'Tumour growth without treament - dimensionless':
+            'Tumour growth without treatment - dimensionless':
                 path + 'tumour_growth_without_treatment_dimensionless.xml',
-            'Tumour growth without treament - Eigenmann et. al.':
+            'Tumour growth without treatment - Eigenmann et. al.':
                 path + 'tumour_growth_without_treatment_Eigenmann.xml',
         }
 
