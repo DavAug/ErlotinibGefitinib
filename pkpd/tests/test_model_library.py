@@ -23,11 +23,11 @@ class TestModelLibrary(unittest.TestCase):
     def test_models(self):
         models = self.model_library.models()
 
-        self.assertEqual(models[0], 'Tumour growth without treatment')
-        self.assertEqual(
-            models[1], 'Tumour growth without treatment - dimensionless')
-        self.assertEqual(
-            models[2], 'Tumour growth without treatment - Eigenmann et. al.')
+        self.assertIn('Tumour growth without treatment', models)
+        self.assertIn(
+            'Tumour growth without treatment - dimensionless', models)
+        self.assertIn(
+            'Tumour growth without treatment - Eigenmann et. al.', models)
 
     def test_get_path(self):
         models = self.model_library.models()
