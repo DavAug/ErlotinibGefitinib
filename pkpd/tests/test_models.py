@@ -25,7 +25,7 @@ class TestPharmacodynamicModel(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        path = pkpd.ModelLibrary().get_path('Tumour growth without treament')
+        path = pkpd.ModelLibrary().get_path('Tumour growth without treatment')
         cls.model = pkpd.PharmacodynamicModel(path, is_log_transformed=False)
         cls.model_log_transformed = pkpd.PharmacodynamicModel(path)
 
