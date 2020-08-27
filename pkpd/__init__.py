@@ -24,8 +24,8 @@ class ModelLibrary(object):
 
     def __init__(self):
         # Get path to model library
-        path = os.getcwd()
-        path += '/pkpd/model_library/'
+        path = os.path.dirname(os.path.abspath(__file__))
+        path += '/model_library/'
 
         # Create model library
         self._model_library = {
