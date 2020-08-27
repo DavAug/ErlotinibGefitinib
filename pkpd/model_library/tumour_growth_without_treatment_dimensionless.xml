@@ -15,10 +15,13 @@
               <times/>
               <ci> a_1 </ci>
               <ci> tumour_volume </ci>
+            </apply>
             <apply>
               <plus/>
               <ci> tumour_volume </ci>
               <ci> a_0 </ci>
+            </apply>
+          </apply>
         </math>
       </rateRule>
     </listOfRules>
