@@ -19,14 +19,11 @@ setup(
     # List of dependencies
     install_requires=[
         'jupyter==1.0.0',
-        'myokit==1.30.6',
+        'myokit>=1.31',
         'numpy>=1.8',
         'pandas>=0.24',
-        'pints @ git+git://github.com/pints-team/pints.git#egg=pints',
+        'pints>=0.3',
         'plotly==4.8.1',
         'tqdm==4.46.1'
     ],
-    dependency_links=[
-     "git+git://github.com/pints-team/pints.git#egg=pints-0.2.2",
-    ]
 )
