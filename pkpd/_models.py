@@ -192,10 +192,12 @@ class TumourGrowthModel(pints.ForwardModel):
         Returns a tumour growth myokit model.
 
         .. math::
-            \frac{\text{d}V^s_T}{\text{d}t} = \frac{2\lambda _0\lambda _1 V^s_T}
+            \frac{\text{d}V^s_T}{\text{d}t} =
+            \frac{2\lambda _0\lambda _1 V^s_T}
             {2\lambda _0 V^s_T + \lambda _1},
 
-        where the tumour volume :math:`V^s_T` is measured in :math:`\text{cm}^3`,
+        where the tumour volume :math:`V^s_T` is measured in
+        :math:`\text{cm}^3`,
         the exponential growth rate :math:`\lambda _0` is mesured in
         :math:`\text{day}` and the linear growth rate :math:`\lambda _1` is
         measured in :math:`\text{cm}^3/\text{day}`.
