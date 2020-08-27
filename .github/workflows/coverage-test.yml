@@ -25,7 +25,7 @@ jobs:
       
       - name: install sundials
         run: |
-          apt-get install libsundials-dev
+          sudo apt-get install libsundials-dev
 
       - name: install pkpd
         run: |
