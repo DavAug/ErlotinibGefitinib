@@ -20,8 +20,8 @@
     </listOfUnitDefinitions>
     <listOfParameters>
       <parameter id="tumour_volume" value="1" constant="false" units="sm_cubed"/>
-      <parameter id="lambda" value="1" constant="true" units="per_day"/>
       <parameter id="critical_volume" value="1" constant="true" units="sm_cubed"/>
+      <parameter id="lambda" value="1" constant="true" units="per_day"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="tumour_volume">
