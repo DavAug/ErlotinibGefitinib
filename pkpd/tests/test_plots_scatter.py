@@ -55,8 +55,6 @@ class TestPlotMeasurements(unittest.TestCase):
 
         data = self.data.rename(columns={'TIME in day': 'SOMETHING ELSE'})
 
-        print(data.keys())
-
         self.assertRaisesRegex(
             ValueError, 'Input data <', pkpd.plots.plot_measurements, data)
 
@@ -65,3 +63,7 @@ class TestPlotMeasurements(unittest.TestCase):
         fig = pkpd.plots.plot_measurements(self.data)
 
         self.assertIsInstance(fig, go.Figure)
+
+
+if __name__ == '__main__':
+    unittest.main()
