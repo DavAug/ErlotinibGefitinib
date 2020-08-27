@@ -13,8 +13,7 @@ from ._likelihoods import (  # noqa
 )
 
 from ._models import (  # noqa
-    PharmacodynamicModel,
-    TumourGrowthModel
+    PharmacodynamicModel
 )
 
 
