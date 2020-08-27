@@ -32,7 +32,7 @@ class PharmacodynamicModel(pints.ForwardModel):
         n_const = model.count_variables(const=True)
         self._n_parameters = self._n_states + n_const
 
-        # Get constant variable and state names
+        # Get constant variable names and state names
         self._state_names = sorted(
             [var.qname() for var in model.states()])
         self._const_names = sorted(
