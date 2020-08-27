@@ -55,8 +55,6 @@ class TestPlotMeasurements(unittest.TestCase):
 
         data = self.data.rename(columns={'TIME in day': 'SOMETHING ELSE'})
 
-        print(data.keys())
-
         self.assertRaisesRegex(
             ValueError, 'Input data <', pkpd.plots.plot_measurements, data)
 
