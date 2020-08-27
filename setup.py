@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 # Go!
 setup(
-    # Module name (lowercase)
+    # Module name
     name='pkpd',
     version='0.0.1dev0',
 
