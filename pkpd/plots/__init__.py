@@ -6,5 +6,6 @@
 #
 
 from ._scatter import (  # noqa
-    plot_measurements
+    plot_measurements,
+    plot_measurements_and_predictions
 )
