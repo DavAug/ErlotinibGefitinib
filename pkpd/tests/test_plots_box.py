@@ -104,6 +104,30 @@ class TestPlotOptimisedParameters(unittest.TestCase):
         self.assertEqual(buttons[1].label, 'ID: id 2')
         self.assertEqual(buttons[2].label, 'ID: id 3')
 
+    def test_buttons(self):
+
+        fig = pkpd.plots.plot_optimised_parameters(
+            self.parameters, self.scores)
+        n_params = 5
+
+        # Check all button labels
+        buttons = fig.layout.updatemenus[0].buttons
+        self.assertEqual(len(buttons), 3)
+
+        visible = buttons[0].args[0]['visible']
+        self.assertEqual(len(visible), n_params * 3)
+        self.assertEqual(visible, [True] * n_params + [False] * n_params * 2)
+
+        visible = buttons[1].args[0]['visible']
+        self.assertEqual(len(visible), n_params * 3)
+        self.assertEqual(
+            visible, [False] * n_params + [True] * n_params +
+            [False] * n_params)
+
+        visible = buttons[2].args[0]['visible']
+        self.assertEqual(len(visible), n_params * 3)
+        self.assertEqual(visible, [False] * n_params * 2 + [True] * n_params)
+
     def test_create_figure(self):
 
         fig = pkpd.plots.plot_optimised_parameters(
