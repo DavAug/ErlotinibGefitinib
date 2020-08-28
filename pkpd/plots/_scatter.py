@@ -5,7 +5,9 @@
 # full license details.
 #
 
+import numpy as np
 import pandas as pd
+import pints
 import plotly.colors
 import plotly.graph_objects as go
 
@@ -184,7 +186,7 @@ def plot_measurements(data):
     return fig
 
 
-def plot_measurements_and_predictions(data, models):
+def plot_measurements_and_predictions(data, model, parameters):
     """
     Returns a `plotly.graph_objects.Figure` containing a scatter plot of the
     measured tumour volume time-series, and line plots of the model
@@ -201,25 +203,46 @@ def plot_measurements_and_predictions(data, models):
     Arguments:
         data -- A pandas.DataFrame containing the measured time-series data of
                 the tumour volume and the mass.
-        models -- A list of pints.ForwardModel
+        model -- A `pints.ForwardModel`.
+        parameters -- An array-like object with the model parameters for each
+                      individual in the dataset.
+                      Shape: (n_individuals, n_parameters)
     """
-
+    # Check data has the correct type
     if not isinstance(data, pd.DataFrame):
-        raise ValueError(
-            'Input data <' + str(data) + '> has to be pandas.DataFrame.')
-
+        raise TypeError(
+            'Data <' + str(data) + '> has to be pandas.DataFrame.')
+    # Check that data has the required keys
     keys = ['#ID', 'TIME in day', 'TUMOUR VOLUME in cm^3', 'BODY WEIGHT in g']
     for key in keys:
         if key not in data.keys():
             raise ValueError(
-                'Input data <' + str(data) + '> must have key <' + str(key) +
+                'Data <' + str(data) + '> must have key <' + str(key) +
                 '>.')
+    # Check that model has the correct type
+    if not isinstance(model, pints.ForwardModel):
+        raise TypeError(
+            'Model needs to be an instance of `pints.ForwardModel`.')
+    # Check that model has only one output dimension
+    if model.n_outputs() != 1:
+        raise ValueError(
+            'Model output dimension has to be 1.')
+    # Check that parameters have the correct dimensions
+    parameters = np.asarray(parameters)
+    if parameters.ndim != 2:
+        raise ValueError(
+            'Parameters needs to have dimension 2. Parameters has '
+            'dimension <' + str(parameters.ndim) + '>.')
 
-    # Get ids
-    ids = data['#ID'].unique()
+    # Get number of individuals
+    n_ids = len(data['#ID'].unique())
 
-    # Get number of different ids
-    n_ids = len(ids)
+    # Check that parameters have the correct shape
+    if parameters.shape != (n_ids, model.n_parameters()):
+        raise ValueError(
+            'Parameters does not have the correct shape. Expected shape '
+            '(n_individuals, n_parameters) = ' +
+            str((n_ids, model.n_parameters())) + '.')
 
     # Define colorscheme
     colors = plotly.colors.qualitative.Plotly[:n_ids]
@@ -228,62 +251,66 @@ def plot_measurements_and_predictions(data, models):
     fig = go.Figure()
 
     # Scatter plot LXF A677 time-series data for each mouse
+    ids = data['#ID'].unique()
     for index, id_m in enumerate(ids):
         # Create mask for mouse
         mask = data['#ID'] == id_m
 
-        # Get time points for mouse
-        times = data['TIME in day'][mask]
+        # Get observed data for indiviudal
+        observed_times = data['TIME in day'][mask].to_numpy()
+        observed_data = data['TUMOUR VOLUME in cm^3'][mask]
 
-        # Get observed tumour volumes for mouse
-        observed_volumes = data['TUMOUR VOLUME in cm^3'][mask]
+        # Simulate data
+        params = parameters[index, :]
+        start_experiment = data['TIME in day'].min()
+        end_experiment = data['TIME in day'].max()
+        simulated_times = np.linspace(
+            start=start_experiment, stop=end_experiment)
+        simulated_data = model.simulate(params, simulated_times)
 
-        # Get mass time series
-        masses = data['BODY WEIGHT in g'][mask]
-
-        # Plot tumour volume over time
+        # Plot data
         fig.add_trace(go.Scatter(
-            x=times,
-            y=observed_volumes,
+            x=observed_times,
+            y=observed_data,
+            legendgroup="ID: %d" % id_m,
             name="ID: %d" % id_m,
             showlegend=True,
             hovertemplate=(
-                "<b>ID: %d</b><br>" % (id_m) +
-                "Time: %{x:} day<br>"
-                "Tumour volume: %{y:.02f} cm^3<br>"
-                "Body weight: %{text}<br>"
-                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<b>Measurement </b><br>" +
+                "ID: %d<br>" % id_m +
+                "Time: %{x:} day<br>" +
+                "Tumour volume: %{y:.02f} cm^3<br>" +
+                "Cancer type: LXF A677<br>" +
                 "<extra></extra>"),
-            text=['%.01f g' % mass for mass in masses],
             mode="markers",
             marker=dict(
                 symbol='circle',
-                color=colors[index],
                 opacity=0.7,
-                line=dict(color='black', width=1))
+                line=dict(color='black', width=1),
+                color=colors[index])
         ))
 
-        # Plot mass over time
+        # Plot simulated growth
         fig.add_trace(go.Scatter(
-            x=times,
-            y=masses,
+            x=simulated_times,
+            y=simulated_data,
+            legendgroup="ID: %d" % id_m,
             name="ID: %d" % id_m,
-            showlegend=True,
-            visible=False,
+            showlegend=False,
             hovertemplate=(
-                "<b>ID: %d</b><br>" % (id_m) +
-                "Time: %{x:} day<br>"
-                "Tumour volume: %{y:.02f} cm^3<br>"
-                "Body weight: %{text}<br>"
-                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<b>Simulation </b><br>" +
+                "ID: %d<br>" % id_m +
+                "Time: %{x:.0f} day<br>" +
+                "Tumour volume: %{y:.02f} cm^3<br>" +
+                "Cancer type: LXF A677<br>" +
+                "<br>" +
+                "<b>Parameter estimates </b><br>" +
+                "Initial tumour volume: %.02f cm^3<br>" % params[0] +
+                "Expon. growth rate: %.02f 1/day<br>" % params[1] +
+                "Lin. growth rate: %.02f cm^3/day<br>" % params[2] +
                 "<extra></extra>"),
-            text=['%.01f g' % mass for mass in masses],
-            mode="markers",
-            marker=dict(
-                symbol='circle',
-                color=colors[index],
-                opacity=0.7,
-                line=dict(color='black', width=1))
+            mode="lines",
+            line=dict(color=colors[index])
         ))
 
     # Set X, Y axis and figure size
@@ -318,42 +345,7 @@ def plot_measurements_and_predictions(data, models):
                 y=1.15,
                 yanchor="top"
             ),
-            dict(
-                type="buttons",
-                direction="down",
-                buttons=list([
-                    dict(
-                        args=[
-                            {"visible": [True, False] * n_ids},
-                            {"yaxis": {
-                                "title": r'$\text{Tumour volume in cm}^3$'}}],
-                        label="Tumour volume",
-                        method="update"
-                    ),
-                    dict(
-                        args=[
-                            {"visible": [False, True] * n_ids},
-                            {"yaxis": {
-                                "title": r'$\text{Body weight in g}$'}}],
-                        label="Body weight",
-                        method="update"
-                    ),
-                ]),
-                pad={"r": 0, "t": -10},
-                showactive=True,
-                x=1.07,
-                xanchor="left",
-                y=1.1,
-                yanchor="top"
-            ),
         ]
     )
-
-    # Position legend
-    fig.update_layout(legend=dict(
-        yanchor="bottom",
-        y=0.01,
-        xanchor="left",
-        x=1.05))
 
     return fig
