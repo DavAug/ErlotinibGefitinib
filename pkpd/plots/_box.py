@@ -119,9 +119,10 @@ def plot_optimised_parameters(parameters, scores, xlabels=None, ids=None):
                 type="buttons",
                 direction="right",
                 buttons=list([dict(
-                    args=[{"visible": [False] * (n_params * idx) +
-                                      [True] * n_params +
-                                      [False] * (n_params * (n_ids - idx - 1))}],
+                    args=[{
+                        "visible": [False] * (n_params * idx) +
+                        [True] * n_params +
+                        [False] * (n_params * (n_ids - idx - 1))}],
                     label="ID: %s" % str(ids[idx]),
                     method="restyle") for idx in range(n_ids)]),
                 pad={"r": 0, "t": -10},
