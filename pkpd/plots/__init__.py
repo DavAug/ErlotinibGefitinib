@@ -9,3 +9,7 @@ from ._scatter import (  # noqa
     plot_measurements,
     plot_measurements_and_predictions
 )
+
+from ._box import (  # noqa
+    plot_optimised_parameters
+)

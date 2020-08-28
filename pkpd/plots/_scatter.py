@@ -324,8 +324,8 @@ def plot_measurements_and_predictions(data, model, parameters):
     fig.update_layout(
         updatemenus=[
             dict(
-                type = "buttons",
-                direction = "left",
+                type="buttons",
+                direction="left",
                 buttons=list([
                     dict(
                         args=[{"yaxis.type": "linear"}],
