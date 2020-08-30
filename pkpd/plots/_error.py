@@ -5,10 +5,281 @@
 # full license details.
 #
 
+import numpy as np
 import pandas as pd
 import pints
 import plotly.colors
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+
+ALLOWED_ERROR_MODELS = [
+        'constant Gaussian', 'multiplicative Gaussian', 'combined Gaussian']
+NUMBER_ERROR_PARAMETERS = {
+    'constant Gaussian': 1,
+    'multiplicative Gaussian': 1,
+    'combined Gaussian': 2}
+
+
+def _add_error_model(fig, predictions, sigma, idx, color, visible):
+    """
+    Adds the median, 1-sigma, 2-sigma, and 3-sigma intervals of a Gaussian
+    error model to the figure.
+    """
+    # Plot median of error model
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=predictions,
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=True,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: Mean</b><br>"
+                "Predicted measurement: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(color=color),
+            opacity=0.7),
+        row=1,
+        col=1)
+
+    # Plot 1-sigma interval of error model
+    _add_sigma_interval_predictions(
+        fig=fig, predictions=predictions, sigma=sigma, number=1, opacity=0.7,
+        width=2, visible=visible)
+
+    # Plot 2-sigma interval of error model
+    _add_sigma_interval_predictions(
+        fig=fig, predictions=predictions, sigma=sigma, number=2, opacity=0.5,
+        width=1.5, visible=visible)
+
+    # Plot 3-sigma interval of error model
+    _add_sigma_interval_predictions(
+        fig=fig, predictions=predictions, sigma=sigma, number=3, opacity=0.3,
+        width=1, visible=visible)
+
+
+def _add_measurements_versus_predictions_plot(
+        fig, measurements, predictions, idx, color, visible):
+    """
+    Adds a measurements versus predictions plot for individual `idx` to the
+    figure.
+    """
+    # Plot measured tumour volume versus structural model tumour volume
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=measurements,
+            legendgroup="Measurement",
+            name="Measurement",
+            showlegend=True,
+            visible=visible,
+            hovertemplate=(
+                "<b>ID: %d</b><br>" % idx +
+                "Structural model: %{x:.02f} cm^3<br>"
+                "Measurement: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="markers",
+            marker=dict(
+                symbol='circle',
+                color=color,
+                opacity=0.7,
+                line=dict(color='black', width=1))),
+        row=1,
+        col=1)
+
+
+def _add_residual_error_model(fig, predictions, sigma, idx, color, visible):
+    """
+    Adds the residual error model to the figure.
+    """
+    # Plot median of error model
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=np.full(shape=len(predictions), fill_value=0),
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: Mean</b><br>"
+                "Hypothetical residual: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(color=color),
+            opacity=0.7),
+        row=2,
+        col=1)
+
+    # Plot 1-sigma interval of error model
+    _add_sigma_interval_residuals(
+        fig=fig, predictions=predictions, sigma=sigma, number=1, opacity=0.7,
+        width=2, visible=visible)
+
+    # Plot 2-sigma interval of error model
+    _add_sigma_interval_residuals(
+        fig=fig, predictions=predictions, sigma=sigma, number=2, opacity=0.5,
+        width=1.5, visible=visible)
+
+    # Plot 3-sigma interval of error model
+    _add_sigma_interval_residuals(
+        fig=fig, predictions=predictions, sigma=sigma, number=3, opacity=0.3,
+        width=1, visible=visible)
+
+
+def _add_residuals_versus_predictions_plot(
+        fig, measurements, predictions, idx, color, visible):
+    """
+    Adds a residuals versus predictions plot for individual `idx` to the
+    figure.
+    """
+    # Plot residuals versus structural model tumour volume
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=measurements - predictions,
+            legendgroup="Measurement",
+            name="Measurement",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>ID: %d</b><br>" % idx +
+                "Structural model: %{x:.02f} cm^3<br>"
+                "Residual: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="markers",
+            marker=dict(
+                symbol='circle',
+                color=color,
+                opacity=0.7,
+                line=dict(color='black', width=1))),
+        row=2,
+        col=1)
+
+
+def _add_sigma_interval_predictions(
+        fig, predictions, sigma, number, opacity, width, visible):
+    """
+    Adds `number`-sigma interval lines of the error model to the measurement
+    versus predictions plot.
+    """
+    # Add upper limit of interval
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=predictions + number * sigma,
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: %d-sigma interval</b><br>" % number +
+                "Predicted measurement: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(
+                color='Black',
+                width=width),
+            opacity=opacity),
+        row=1,
+        col=1)
+
+    # Add lower limit of interval
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=predictions - number * sigma,
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: %d-sigma interval</b><br>" % number +
+                "Hypothetical measurement: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(
+                color='Black',
+                width=width),
+            opacity=opacity),
+        row=1,
+        col=1)
+
+
+def _add_sigma_interval_residuals(
+        fig, predictions, sigma, number, opacity, width, visible):
+    """
+    Adds `number`-sigma interval lines of the error model to the residuals
+    versus predictions plot.
+    """
+    # Add upper limit of interval
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=np.full(shape=len(predictions), fill_value=number * sigma),
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: %d-sigma interval</b><br>" % number +
+                "Hypothetical residual: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(
+                color='Black',
+                width=width),
+            opacity=opacity),
+        row=2,
+        col=1)
+
+    # Add lower limit of interval
+    fig.add_trace(
+        go.Scatter(
+            x=predictions,
+            y=np.full(shape=len(predictions), fill_value=-number * sigma),
+            legendgroup="Error model",
+            name="Error model",
+            showlegend=False,
+            visible=visible,
+            hovertemplate=(
+                "<b>Error model: %d-sigma interval</b><br>" % number +
+                "Hypothetical residual: %{y:.02f} cm^3<br>"
+                "Cancer type: Lung cancer (LXF A677)<br>"
+                "<extra></extra>"),
+            mode="lines",
+            line=dict(
+                color='Black',
+                width=width),
+            opacity=opacity),
+        row=2,
+        col=1)
+
+
+def _compute_standard_deviation(error_model, predictions, parameters):
+    """
+    Returns the standard deviation of the error model for each prediction.
+    """
+    if error_model == 'constant Gaussian':
+        sigma = parameters[0]
+        return np.full(shape=len(predictions), fill_value=sigma)
+    if error_model == 'multiplicative Gaussian':
+        sigma = parameters[0]
+        return predictions * sigma
+    if error_model == 'multiplicative Gaussian':
+        sigma_base = parameters[0]
+        sigma_rel = parameters[1]
+        return sigma_base + predictions * sigma_rel
 
 
 def plot_error_model(
@@ -91,12 +362,10 @@ def plot_error_model(
         raise ValueError(
             'Strcutural model output dimension has to be 1.')
     # Check that error model is valid
-    allowed_error_models = [
-        'constant Gaussian', 'multiplicative Gaussian', 'combined Gaussian']
-    if error_model not in allowed_error_models:
+    if error_model not in ALLOWED_ERROR_MODELS:
         raise ValueError(
             'Error model <' + str(error_model) + '> is not an allowed error '
-            'model. Allowed error models are <' + str(allowed_error_models)
+            'model. Allowed error models are <' + str(ALLOWED_ERROR_MODELS)
             + '>.')
 
     # Get number of individuals
@@ -104,12 +373,21 @@ def plot_error_model(
 
     # Check that parameters have the correct shape
     n_struc_params = struc_model.n_parameters()
-    n_error_params = 2 if error_model == 'combined Gaussian' else 1
+    n_error_params = NUMBER_ERROR_PARAMETERS[error_model]
+    parameters = np.asarray(parameters)
     if parameters.shape != (n_ids, n_struc_params + n_error_params):
         raise ValueError(
             'Parameters does not have the correct shape. Expected shape '
             '(n_individuals, n_parameters) = ' +
             str((n_ids, n_struc_params + n_error_params)) + '.')
+    # Check that the error model parameters across individuals are identical,
+    # if the error model is pooled.
+    if pooled_error:
+        params = parameters[:, -n_error_params:]
+        if not np.all(params == params[0, :]):
+            raise ValueError(
+                'Pooling of the error model makes only sense if the error '
+                'model parameters are the same across all dimensions.')
 
     # Define colorscheme
     colors = plotly.colors.qualitative.Plotly[:n_ids]
@@ -134,342 +412,40 @@ def plot_error_model(
         observed_volumes = data['TUMOUR VOLUME in cm^3'][mask]
 
         # Get noise parameter
-        sigma = _compute_standard_deviation(error_model, predictions, params)
-        noise_params = parameters[index, -n_error_params:]
+        params = parameters[index, -n_error_params:]
+        sigma = _compute_standard_deviation(
+            error_model, predicted_volumes, params)
 
-        # Plot I: Measured vs predicted volumes
-        # Plot measured tumour volume versus structural model tumour volume
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=observed_volumes,
-                legendgroup="Measurement",
-                name="Measurement",
-                showlegend=True,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>ID: %d</b><br>" % (id_m) +
-                    "Structural model: %{x:.02f} cm^3<br>" +
-                    "Measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="markers",
-                marker=dict(
-                    symbol='circle',
-                    color=colors[index],
-                    opacity=0.7,
-                    line=dict(color='black', width=1))),
-            row=1,
-            col=1)
+        # Plot measurements versus predictions / residuals versus predictions
+        visible = True if index == 0 else False
+        if pooled_error:
+            # Pooling the error model results in plotting all individuals in
+            # the same plot.
+            visible = True
+        _add_measurements_versus_predictions_plot(
+            fig, observed_volumes, predicted_volumes, idx, colors[index],
+            visible)
+        _add_residuals_versus_predictions_plot(
+            fig, observed_volumes, predicted_volumes, idx, colors[index],
+            visible)
 
-        # Plot median of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=True,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: Mean</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(color=colors[index]),
-                opacity=0.7),
-            row=1,
-            col=1)
-
-        # Plot 1-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes + sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 1-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.7),
-            row=1,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes - sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 1-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.7),
-            row=1,
-            col=1)
-
-        # Plot 2-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes + 2 * sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 2-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black',
-                    width=1.5),
-                opacity=0.5),
-            row=1,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes - 2 * sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 2-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black',
-                    width=1.5),
-                opacity=0.5),
-            row=1,
-            col=1)
-
-        # Plot 3-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes + 3 * sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 3-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black',
-                    width=1),
-                opacity=0.3),
-            row=1,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=predicted_volumes - 3 * sigma,
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 3-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black',
-                    width=1),
-                opacity=0.3),
-            row=1,
-            col=1)
-
-        # Plot II: Residuals vs predicted volumes
-        # Plot residuals versus structural model tumour volume
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=observed_volumes - predicted_volumes,
-                legendgroup="Measurement",
-                name="Measurement",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>ID: %d</b><br>" % (id_m) +
-                    "Structural model: %{x:.02f} cm^3<br>" +
-                    "Residual: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="markers",
-                marker=dict(
-                    symbol='circle',
-                    color=colors[index],
-                    opacity=0.7,
-                    line=dict(color='black', width=1))),
-            row=2,
-            col=1)
-
-        # Plot median of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=0),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: Mean</b><br>" +
-                    "Hypothetical residual: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(color=colors[index]),
-                opacity=0.7),
-            row=2,
-            col=1)
-
-        # Plot 1-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 1-sigma interval</b><br>" +
-                    "Hypothetical residual: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.7),
-            row=2,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=-sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 1-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.7),
-            row=2,
-            col=1)
-
-        # Plot 2-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=2 * sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 2-sigma interval</b><br>" +
-                    "Hypothetical residual: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.5),
-            row=2,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=-2 * sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 2-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.5),
-            row=2,
-            col=1)
-
-        # Plot 3-sigma interval of error model
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=3 * sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 3-sigma interval</b><br>" +
-                    "Hypothetical residual: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.3),
-            row=2,
-            col=1)
-        fig.add_trace(
-            go.Scatter(
-                x=predicted_volumes,
-                y=np.full(shape=len(predicted_volumes), fill_value=-3 * sigma),
-                legendgroup="Error model",
-                name="Error model",
-                showlegend=False,
-                visible=True if index == 0 else False,
-                hovertemplate=
-                    "<b>Error model: 3-sigma interval</b><br>" +
-                    "Hypothetical measurement: %{y:.02f} cm^3<br>" +
-                    "Cancer type: Lung cancer (LXF A677)<br>" +
-                    "<extra></extra>",
-                mode="lines",
-                line=dict(
-                    color='Black'),
-                opacity=0.3),
-            row=2,
-            col=1)
+        # Plot error model only once if error is pooled, else for each
+        # individual
+        visible = True if index == 0 else False
+        color = colors[index]
+        if pooled_error:
+            # Make colour of error neutral
+            color = 'black'
+        if index == 0:
+            _add_error_model(
+                fig, predicted_volumes, sigma, idx, color, visible)
+            _add_residual_error_model(
+                fig, predicted_volumes, sigma, idx, color, visible)
+        elif not pooled_error:
+            _add_error_model(
+                fig, predicted_volumes, sigma, idx, color, visible)
+            _add_residual_error_model(
+                fig, predicted_volumes, sigma, idx, color, visible)
 
     # Set figure size
     fig.update_layout(
@@ -477,11 +453,15 @@ def plot_error_model(
         template="plotly_white")
 
     # Set X and Y axes
-    fig.update_xaxes(title_text=r'$\text{Structural model predictions in cm}^3$', row=2, col=1)
-    fig.update_yaxes(title_text=r'$\text{Tumour volume in cm}^3$', row=1, col=1)
-    fig.update_yaxes(title_text=r'$\text{Residuals in cm}^3$', row=2, col=1)
+    fig.update_xaxes(
+        title_text=r'$\text{Structural model predictions in cm}^3$',
+        row=2, col=1)
+    fig.update_yaxes(
+        title_text=r'$\text{Tumour volume in cm}^3$', row=1, col=1)
+    fig.update_yaxes(
+        title_text=r'$\text{Residuals in cm}^3$', row=2, col=1)
 
-
+    #TODO: ONLY WHEN not pooled
     # Add switch between mice
     fig.update_layout(
         updatemenus=[
