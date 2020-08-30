@@ -5,6 +5,10 @@
 # full license details.
 #
 
+import pandas as pd
+import pints
+import plotly.colors
+from plotly.subplots import make_subplots
 
 
 def plot_error_model(
@@ -17,8 +21,7 @@ def plot_error_model(
     This function assumes the following keys naming convention for the data:
         ids: '#ID'
         time: 'TIME in day'
-        tumour volume: 'TUMOUR VOLUME in cm^3
-        mass: 'BODY WEIGHT in g'.
+        tumour volume: 'TUMOUR VOLUME in cm^3.
 
     The axis labels as well as the hoverinfo assume that time is measured in
     day and volume is measured in cm^3.
@@ -67,44 +70,72 @@ def plot_error_model(
                         individuals is plotted in one figure (True) or in
                         separate figures (False).
     """
-    # Import data
-    # Get path of current working directory
-    path = os.getcwd()
+    # Check data has the correct type
+    if not isinstance(data, pd.DataFrame):
+        raise TypeError(
+            'Data <' + str(data) + '> has to be pandas.DataFrame.')
+    # Check that data has the required keys
+    keys = ['#ID', 'TIME in day', 'TUMOUR VOLUME in cm^3', 'BODY WEIGHT in g']
+    for key in keys:
+        if key not in data.keys():
+            raise ValueError(
+                'Data <' + str(data) + '> must have key <' + str(key) +
+                '>.')
+    # Check that model has the correct type
+    if not isinstance(struc_model, pints.ForwardModel):
+        raise TypeError(
+            'Strcutural model `struc_model` needs to be an instance of '
+            '`pints.ForwardModel`.')
+    # Check that model has only one output dimension
+    if struc_model.n_outputs() != 1:
+        raise ValueError(
+            'Strcutural model output dimension has to be 1.')
+    # Check that error model is valid
+    allowed_error_models = [
+        'constant Gaussian', 'multiplicative Gaussian', 'combined Gaussian']
+    if error_model not in allowed_error_models:
+        raise ValueError(
+            'Error model <' + str(error_model) + '> is not an allowed error '
+            'model. Allowed error models are <' + str(allowed_error_models)
+            + '>.')
 
-    # Import LXF A677 control growth data
-    data = pd.read_csv(path + '/data/lxf_control_growth.csv')
+    # Get number of individuals
+    n_ids = len(data['#ID'].unique())
 
-    # Match observations with predictions
-    data = data.merge(structural_model_predictions, on=['#ID', 'TIME in day'])
-
-    # Get noise parameters
-    sigmas = median_parameters[:, -1]
-
-    # Get mouse ids
-    mouse_ids = data['#ID'].unique()
-
-    # Get number of mice
-    n_mice = len(mouse_ids)
+    # Check that parameters have the correct shape
+    n_struc_params = struc_model.n_parameters()
+    n_error_params = 2 if error_model == 'combined Gaussian' else 1
+    if parameters.shape != (n_ids, n_struc_params + n_error_params):
+        raise ValueError(
+            'Parameters does not have the correct shape. Expected shape '
+            '(n_individuals, n_parameters) = ' +
+            str((n_ids, n_struc_params + n_error_params)) + '.')
 
     # Define colorscheme
-    colors = plotly.colors.qualitative.Plotly[:n_mice]
+    colors = plotly.colors.qualitative.Plotly[:n_ids]
 
     # Create figure
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.5, 0.5], vertical_spacing=0.05)
+    fig = make_subplots(
+        rows=2, cols=1, shared_xaxes=True, row_heights=[0.5, 0.5],
+        vertical_spacing=0.05)
 
-    # Scatter plot LXF A677 time-series data for each mouse
-    for index, id_m in enumerate(mouse_ids):
+    # Create plots
+    ids = data['#ID'].unique()
+    for index, idx in enumerate(ids):
         # Create mask for mouse
-        mask = data['#ID'] == id_m
+        mask = data['#ID'] == idx
 
-        # Get predicted tumour volumes for mouse
-        predicted_volumes = data['PREDICTED TUMOUR VOLUME in cm^3'][mask]
+        # Predict tumour volumes
+        params = parameters[index, :n_struc_params]
+        observed_times = data['TIME in day'][mask]
+        predicted_volumes = struc_model.simulate(params, observed_times)
 
         # Get observed tumour volumes for mouse
         observed_volumes = data['TUMOUR VOLUME in cm^3'][mask]
 
         # Get noise parameter
-        sigma = sigmas[index]
+        sigma = _compute_standard_deviation(error_model, predictions, params)
+        noise_params = parameters[index, -n_error_params:]
 
         # Plot I: Measured vs predicted volumes
         # Plot measured tumour volume versus structural model tumour volume
@@ -517,42 +548,3 @@ def plot_error_model(
         x=1.05))
 
     return fig
-
-
-def _predict_tumour_volume():
-    # Get mouse IDs and times
-    mouse_ids_and_times = data[['#ID', 'TIME in day']]
-
-    # Get median parameters for each mouse
-    median_parameters = np.median(transf_params, axis=1)
-
-    # Instantiate model
-    model = DimensionlessLogTransformedPintsModel()
-
-    # Create container for simulated synthesised data
-    structural_model_predictions = []
-
-    # Simulate "noise-free" data
-    mouse_ids = mouse_ids_and_times['#ID'].unique()
-    for index, mouse_id in enumerate(mouse_ids):
-        # Create mask for mouse
-        mask = mouse_ids_and_times['#ID'] == mouse_id
-
-        # Get times
-        times = mouse_ids_and_times[mask]['TIME in day'].to_numpy() / characteristic_time
-
-        # Get parameters
-        parameters = median_parameters[index, :n_structural_params]
-
-        # Predict volumes
-        predicted_volumes = model.simulate(parameters, times) * characteristic_volume
-
-        # Save dataframe
-        df = pd.DataFrame({
-            '#ID': mouse_ids_and_times[mask]['#ID'],
-            'TIME in day': mouse_ids_and_times[mask]['TIME in day'],
-            'PREDICTED TUMOUR VOLUME in cm^3': predicted_volumes})
-        structural_model_predictions.append(df)
-
-    # Merge mouse dataframes to one dataframe
-    structural_model_predictions = pd.concat(structural_model_predictions)
