@@ -192,7 +192,7 @@ def plot_measurements_and_predictions(data, model, parameters):
     measured tumour volume time-series, and line plots of the model
     predictions.
 
-    This function assumes the follwing keys naming convention:
+    This function assumes the following keys naming convention:
         ids: '#ID'
         time: 'TIME in day'
         tumour volume: 'TUMOUR VOLUME in cm^3
