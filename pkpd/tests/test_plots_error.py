@@ -227,8 +227,12 @@ class TestPlotMeasurementsAndErrorModel(unittest.TestCase):
 
         # Test constant and multiplicative Gaussian error
         error_model = 'combined Gaussian'
+        parameters = [
+            [1, 1, 1, 0.1, 1],
+            [2, 2, 2, 0.05, 1],
+            [3, 3, 3, 0.2, 1]]
         fig = pkpd.plots.plot_measurements_and_error_model(
-            self.data, self.model, error_model, self.parameters)
+            self.data, self.model, error_model, parameters)
 
         self.assertIsInstance(fig, go.Figure)
 
