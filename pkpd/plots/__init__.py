@@ -13,3 +13,7 @@ from ._scatter import (  # noqa
 from ._box import (  # noqa
     plot_optimised_parameters
 )
+
+from ._error import (  # noqa
+    plot_error_model
+)
