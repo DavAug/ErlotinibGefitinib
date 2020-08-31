@@ -15,5 +15,5 @@ from ._box import (  # noqa
 )
 
 from ._error import (  # noqa
-    plot_error_model
+    plot_measurements_and_error_model
 )
