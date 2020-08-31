@@ -276,7 +276,7 @@ def _compute_standard_deviation(error_model, predictions, parameters):
     if error_model == 'multiplicative Gaussian':
         sigma = parameters[0]
         return predictions * sigma
-    if error_model == 'multiplicative Gaussian':
+    if error_model == 'combined Gaussian':
         sigma_base = parameters[0]
         sigma_rel = parameters[1]
         return sigma_base + predictions * sigma_rel
