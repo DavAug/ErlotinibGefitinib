@@ -282,7 +282,7 @@ def _compute_standard_deviation(error_model, predictions, parameters):
         return sigma_base + predictions * sigma_rel
 
 
-def plot_error_model(
+def plot_measurements_and_error_model(
         data, struc_model, error_model, parameters, pooled_error=False):
     r"""
     Returns a `plotly.graph_objects.Figure` containing a measurements versus
