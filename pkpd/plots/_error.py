@@ -355,12 +355,12 @@ def plot_measurements_and_error_model(
     # Check that model has the correct type
     if not isinstance(struc_model, pints.ForwardModel):
         raise TypeError(
-            'Strcutural model `struc_model` needs to be an instance of '
+            'Structural model `struc_model` needs to be an instance of '
             '`pints.ForwardModel`.')
     # Check that model has only one output dimension
     if struc_model.n_outputs() != 1:
         raise ValueError(
-            'Strcutural model output dimension has to be 1.')
+            'Structural model output dimension has to be 1.')
     # Check that error model is valid
     if error_model not in ALLOWED_ERROR_MODELS:
         raise ValueError(
@@ -387,14 +387,15 @@ def plot_measurements_and_error_model(
         if not np.all(params == params[0, :]):
             raise ValueError(
                 'Pooling of the error model makes only sense if the error '
-                'model parameters are the same across all dimensions.')
+                'model parameters are the same across all individuals.')
 
     # Define colorscheme
     colors = plotly.colors.qualitative.Plotly[:n_ids]
 
     # Create figure
+    n_subplots = 2
     fig = make_subplots(
-        rows=2, cols=1, shared_xaxes=True, row_heights=[0.5, 0.5],
+        rows=n_subplots, cols=1, shared_xaxes=True, row_heights=[0.5, 0.5],
         vertical_spacing=0.05)
 
     # Create plots
@@ -406,7 +407,8 @@ def plot_measurements_and_error_model(
         # Predict tumour volumes
         params = parameters[index, :n_struc_params]
         observed_times = data['TIME in day'][mask]
-        predicted_volumes = struc_model.simulate(params, observed_times)
+        predicted_volumes = struc_model.simulate(
+            params, observed_times.to_numpy())
 
         # Get observed tumour volumes for mouse
         observed_volumes = data['TUMOUR VOLUME in cm^3'][mask]
@@ -431,21 +433,21 @@ def plot_measurements_and_error_model(
 
         # Plot error model only once if error is pooled, else for each
         # individual
-        visible = True if index == 0 else False
         color = colors[index]
         if pooled_error:
             # Make colour of error neutral
             color = 'black'
         if index == 0:
             _add_error_model(
-                fig, predicted_volumes, sigma, idx, color, visible)
+                fig, predicted_volumes, sigma, idx, color, True)
             _add_residual_error_model(
                 fig, predicted_volumes, sigma, idx, color, visible)
         elif not pooled_error:
+            # Hide error for other individuals at first
             _add_error_model(
-                fig, predicted_volumes, sigma, idx, color, visible)
+                fig, predicted_volumes, sigma, idx, color, False)
             _add_residual_error_model(
-                fig, predicted_volumes, sigma, idx, color, visible)
+                fig, predicted_volumes, sigma, idx, color, False)
 
     # Set figure size
     fig.update_layout(
@@ -461,64 +463,34 @@ def plot_measurements_and_error_model(
     fig.update_yaxes(
         title_text=r'$\text{Residuals in cm}^3$', row=2, col=1)
 
-    #TODO: ONLY WHEN not pooled
-    # Add switch between mice
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                type = "buttons",
-                direction = "right",
-                buttons=list([
-                    dict(
-                        args=[{"visible": [True]*(8 * 2) + [False]*(8 * 2 * 7)}],
-                        label="ID: %d" % mouse_ids[0],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2) + [True]*(8 * 2) + [False]*(8 * 2 * 6)}],
-                        label="ID: %d" % mouse_ids[1],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 2) + [True]*(8 * 2) + [False]*(8 * 2 * 5)}],
-                        label="ID: %d" % mouse_ids[2],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 3) + [True]*(8 * 2) + [False]*(8 * 2 * 4)}],
-                        label="ID: %d" % mouse_ids[3],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 4) + [True]*(8 * 2) + [False]*(8 * 2 * 3)}],
-                        label="ID: %d" % mouse_ids[4],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 5) + [True]*(8 * 2) + [False]*(8 * 2 * 2)}],
-                        label="ID: %d" % mouse_ids[5],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 6) + [True]*(8 * 2) + [False]*(8 * 2)}],
-                        label="ID: %d" % mouse_ids[6],
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"visible": [False]*(8 * 2 * 7) + [True]*(8 * 2)}],
-                        label="ID: %d" % mouse_ids[7],
-                        method="restyle"
-                    )
-                ]),
-                pad={"r": 0, "t": -10},
-                showactive=True,
-                x=0.0,
-                xanchor="left",
-                y=1.1,
-                yanchor="top"
-            )
-        ]
-    )
+    if not pooled_error:
+        # Number of graph objects per subplot
+        # [data, mean, 2 times 1-, 2-, 3-sigma interval]
+        n_go = 8
+
+        # Add switches between individuals
+        fig.update_layout(
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    direction="right",
+                    buttons=list([dict(
+                        args=[{
+                            "visible": [False] * (n_go * n_subplots * idx) +
+                            [True] * (n_go * n_subplots) +
+                            [False] * (n_go * n_subplots * (n_ids - idx - 1))}
+                            ],
+                        label="ID: %s" % str(ids[idx]),
+                        method="restyle") for idx in range(n_ids)]),
+                    pad={"r": 0, "t": -10},
+                    showactive=True,
+                    x=0.0,
+                    xanchor="left",
+                    y=1.1,
+                    yanchor="top"
+                )
+            ]
+        )
 
     # Position legend
     fig.update_layout(legend=dict(
