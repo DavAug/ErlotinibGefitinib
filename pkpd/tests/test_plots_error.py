@@ -209,6 +209,29 @@ class TestPlotMeasurementsAndErrorModel(unittest.TestCase):
         self.assertTrue(plots[18].visible)
         self.assertTrue(plots[19].visible)
 
+    def test_error_models(self):
+
+        # Test constant Gaussian error
+        error_model = 'constant Gaussian'
+        fig = pkpd.plots.plot_measurements_and_error_model(
+            self.data, self.model, error_model, self.parameters)
+
+        self.assertIsInstance(fig, go.Figure)
+
+        # Test multiplicative Gaussian error
+        error_model = 'multiplicative Gaussian'
+        fig = pkpd.plots.plot_measurements_and_error_model(
+            self.data, self.model, self.error, self.parameters)
+
+        self.assertIsInstance(fig, go.Figure)
+
+        # Test constant and multiplicative Gaussian error
+        error_model = 'combined Gaussian'
+        fig = pkpd.plots.plot_measurements_and_error_model(
+            self.data, self.model, self.error, self.parameters)
+
+        self.assertIsInstance(fig, go.Figure)
+
 
 if __name__ == '__main__':
     unittest.main()
