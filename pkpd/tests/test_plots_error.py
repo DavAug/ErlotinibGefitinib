@@ -221,14 +221,14 @@ class TestPlotMeasurementsAndErrorModel(unittest.TestCase):
         # Test multiplicative Gaussian error
         error_model = 'multiplicative Gaussian'
         fig = pkpd.plots.plot_measurements_and_error_model(
-            self.data, self.model, self.error, self.parameters)
+            self.data, self.model, error, self.parameters)
 
         self.assertIsInstance(fig, go.Figure)
 
         # Test constant and multiplicative Gaussian error
         error_model = 'combined Gaussian'
         fig = pkpd.plots.plot_measurements_and_error_model(
-            self.data, self.model, self.error, self.parameters)
+            self.data, self.model, error, self.parameters)
 
         self.assertIsInstance(fig, go.Figure)
 
