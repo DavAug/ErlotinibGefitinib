@@ -412,7 +412,7 @@ def plot_measurements_and_simulation(
     # Check that parameters have the correct shape
     if default_parameters.shape != (model.n_parameters(),):
         raise ValueError(
-            'Default parameters does not have the correct shape. Expected '
+            'Default parameters do not have the correct shape. Expected '
             'shape (n_parameters,) = ' + str((model.n_parameters(),)) + '.')
     if min_parameters.shape != (model.n_parameters(),):
         raise ValueError(
