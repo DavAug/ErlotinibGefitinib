@@ -33,13 +33,13 @@ def plot_measurements(data):
 
     if not isinstance(data, pd.DataFrame):
         raise ValueError(
-            'Input data <' + str(data) + '> has to be pandas.DataFrame.')
+            'Data has to be pandas.DataFrame.')
 
     keys = ['#ID', 'TIME in day', 'TUMOUR VOLUME in cm^3', 'BODY WEIGHT in g']
     for key in keys:
         if key not in data.keys():
             raise ValueError(
-                'Input data <' + str(data) + '> must have key <' + str(key) +
+                'Data must have key <' + str(key) +
                 '>.')
 
     # Get ids
@@ -211,13 +211,13 @@ def plot_measurements_and_predictions(data, model, parameters):
     # Check data has the correct type
     if not isinstance(data, pd.DataFrame):
         raise TypeError(
-            'Data <' + str(data) + '> has to be pandas.DataFrame.')
+            'Data has to be pandas.DataFrame.')
     # Check that data has the required keys
     keys = ['#ID', 'TIME in day', 'TUMOUR VOLUME in cm^3', 'BODY WEIGHT in g']
     for key in keys:
         if key not in data.keys():
             raise ValueError(
-                'Data <' + str(data) + '> must have key <' + str(key) +
+                'Data must have key <' + str(key) +
                 '>.')
     # Check that model has the correct type
     if not isinstance(model, pints.ForwardModel):
@@ -377,13 +377,13 @@ def plot_measurements_and_simulation(
     # Check data has the correct type
     if not isinstance(data, pd.DataFrame):
         raise TypeError(
-            'Data <' + str(data) + '> has to be pandas.DataFrame.')
+            'Data has to be pandas.DataFrame.')
     # Check that data has the required keys
     keys = ['#ID', 'TIME in day', 'TUMOUR VOLUME in cm^3', 'BODY WEIGHT in g']
     for key in keys:
         if key not in data.keys():
             raise ValueError(
-                'Data <' + str(data) + '> must have key <' + str(key) +
+                'Data must have key <' + str(key) +
                 '>.')
     # Check that model has the correct type
     if not isinstance(model, pints.ForwardModel):
