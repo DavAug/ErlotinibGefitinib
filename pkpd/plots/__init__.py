@@ -7,7 +7,8 @@
 
 from ._scatter import (  # noqa
     plot_measurements,
-    plot_measurements_and_predictions
+    plot_measurements_and_predictions,
+    plot_measurements_and_simulation
 )
 
 from ._box import (  # noqa
