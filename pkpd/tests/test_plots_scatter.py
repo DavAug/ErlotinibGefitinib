@@ -206,60 +206,113 @@ class TestPlotMeasurementsAndSimulation(unittest.TestCase):
             pkpd.plots.plot_measurements_and_simulation, data, self.model,
             self.default_params, self.min_params, self.max_params)
 
-    # def test_bad_model_type(self):
+    def test_bad_model_type(self):
 
-    #     model = 'bad model'
+        model = 'bad model'
 
-    #     self.assertRaisesRegex(
-    #         TypeError, 'Model needs to be an instance of',
-    #         pkpd.plots.plot_measurements_and_predictions, self.data, model,
-    #         self.parameters)
+        self.assertRaisesRegex(
+            TypeError, 'Model needs to be an instance of',
+            pkpd.plots.plot_measurements_and_simulation, self.data, model,
+            self.default_params, self.min_params, self.max_params)
 
-    # def test_bad_model_n_output(self):
+    def test_bad_model_n_output(self):
 
-    #     # Create model
-    #     path = pkpd.ModelLibrary().get_path('Tumour growth without treatment')
-    #     model = pkpd.PharmacodynamicModel(path)
+        # Create model
+        path = pkpd.ModelLibrary().get_path('Tumour growth without treatment')
+        model = pkpd.PharmacodynamicModel(path)
 
-    #     # Change to multi-output model
-    #     model.set_outputs(['myokit.tumour_volume', 'myokit.tumour_volume'])
+        # Change to multi-output model
+        model.set_outputs(['myokit.tumour_volume', 'myokit.tumour_volume'])
 
-    #     self.assertRaisesRegex(
-    #         ValueError, 'Model output dimension has to be 1.',
-    #         pkpd.plots.plot_measurements_and_predictions, self.data, model,
-    #         self.parameters)
+        self.assertRaisesRegex(
+            ValueError, 'Model output dimension has to be 1.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, model,
+            self.default_params, self.min_params, self.max_params)
 
-    # def test_bad_parameters_dimension(self):
+    def test_bad_default_parameters_dimension(self):
 
-    #     parameters = np.ones(shape=(3, 3, 3))
+        parameters = np.ones(shape=(3, 3))
 
-    #     self.assertRaisesRegex(
-    #         ValueError, 'Parameters needs to have dimension 2.',
-    #         pkpd.plots.plot_measurements_and_predictions, self.data,
-    #         self.model, parameters)
+        self.assertRaisesRegex(
+            ValueError, 'Default parameters need to have dimension 1.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            parameters, self.min_params, self.max_params)
 
-    # def test_bad_parameter_shape(self):
+    def test_bad_min_parameters_dimension(self):
 
-    #     parameters = np.ones(shape=(10, 3))
+        parameters = np.ones(shape=(3, 3))
 
-    #     self.assertRaisesRegex(
-    #         ValueError, 'Parameters does not have the correct shape.',
-    #         pkpd.plots.plot_measurements_and_predictions, self.data,
-    #         self.model, parameters)
+        self.assertRaisesRegex(
+            ValueError, 'Minimum parameters need to have dimension 1.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            self.default_params, parameters, self.max_params)
 
-    #     parameters = np.ones(shape=(3, 10))
+    def test_bad_max_parameters_dimension(self):
 
-    #     self.assertRaisesRegex(
-    #         ValueError, 'Parameters does not have the correct shape.',
-    #         pkpd.plots.plot_measurements_and_predictions, self.data,
-    #         self.model, parameters)
+        parameters = np.ones(shape=(3, 3))
 
-    # def test_create_figure(self):
+        self.assertRaisesRegex(
+            ValueError, 'Maximum parameters need to have dimension 1.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            self.default_params, self.min_params, parameters)
 
-    #     fig = pkpd.plots.plot_measurements_and_predictions(
-    #         self.data, self.model, self.parameters)
+    def test_bad_default_parameters_shape(self):
 
-    #     self.assertIsInstance(fig, go.Figure)
+        parameters = np.ones(shape=(10,))
+
+        self.assertRaisesRegex(
+            ValueError, 'Default parameters do not have the correct shape.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            parameters, self.min_params, self.max_params)
+
+    def test_bad_min_parameters_shape(self):
+
+        parameters = np.ones(shape=(10,))
+
+        self.assertRaisesRegex(
+            ValueError, 'Minimum parameters do not have the correct shape.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            self.default_params, parameters, self.max_params)
+
+    def test_bad_max_parameters_shape(self):
+
+        parameters = np.ones(shape=(10,))
+
+        self.assertRaisesRegex(
+            ValueError, 'Maximum parameters do not have the correct shape.',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            self.default_params, self.min_params, parameters)
+
+    def test_parameter_names(self):
+
+        # Test bad parameter names
+        param_names = ['param 1', 'param 2']
+
+        self.assertRaisesRegex(
+            ValueError, 'Number of parameter names does not match number of',
+            pkpd.plots.plot_measurements_and_simulation, self.data, self.model,
+            self.default_params, self.min_params, self.max_params, param_names)
+
+        # Good parameter names
+        param_names = ['param 1', 'param 2', 'param 3']
+        fig = pkpd.plots.plot_measurements_and_simulation(
+            self.data, self.model, self.default_params, self.min_params,
+            self.max_params, param_names)
+
+        # Check all labels
+        sliders = fig.layout.sliders
+        self.assertEqual(len(sliders), 3)
+        self.assertEqual(sliders[0].currentvalue.prefix, param_names[0] + ': ')
+        self.assertEqual(sliders[1].currentvalue.prefix, param_names[1] + ': ')
+        self.assertEqual(sliders[2].currentvalue.prefix, param_names[2] + ': ')
+
+    def test_create_figure(self):
+
+        fig = pkpd.plots.plot_measurements_and_simulation(
+            self.data, self.model, self.default_params, self.min_params,
+            self.max_params)
+
+        self.assertIsInstance(fig, go.Figure)
 
 
 if __name__ == '__main__':
