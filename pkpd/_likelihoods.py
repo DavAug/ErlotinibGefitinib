@@ -275,6 +275,156 @@ class FixedEtaLogLikelihoodWrapper(pints.LogPDF):
         return self._log_pdf.n_parameters() - 1
 
 
+class PooledLogPDF(pints.LogPDF):
+    r"""
+    Calculates a sum of :class:`LogPDF` objects, while pooling selected
+    parameters across log-pdfs.
+
+    This :class:`LogPDF` requires that all :class:`LogPDF` objects have the
+    same number of parameters.
+
+    This is useful for e.g. modelling the time-series of multiple individuals
+    (each individual defines a separate :class:`LogPDF`), and some parameters
+    are expected to be the same across individuals. This may be a realistic
+    expectation for the noise parameter, if the experimental set up didn't vary
+    for the indiviudals.
+
+    For two :class:`LogPDF` objects :math:`L _1`  and :math:`L _2` with
+    parameters :math:`(\psi _1, \theta _1`) and :math:`(\psi _2, \theta _2`)
+    respectively, a pooling of the :math:`\theta _i` results in a pooled
+    log-pdf of the form
+
+    .. math::
+        \log L(\psi _1, \psi _2, \theta | D_1, D_2) =
+            \log L(\psi _1, \theta | D_1) + \log L(\psi _2, \theta | D_2),
+
+    where :math:`\theta := \theta _1 = \theta _2`, and $D_i$ is the measured
+    time-series of individual :math:`i`.
+
+    In general, the search of a :class:`PooledLogPDF` has dimensionality
+    :math:`nd_{\text{up}} + d_{\text{p}}`, where :math:`n` is the number of
+    individuals, :math:`d_{\text{up}}` is the dimension of the unpooled
+    :math:`psi` parameter, and :math:`d_{\text{up}}` is the dimenion of the
+    pooled :math:`\theta` parameter.
+    For :math:`\psi _i` of dimension
+
+    Extends :class:`LogPDF`.
+
+    Parameters
+    ----------
+    log_pdfs
+        A sequence of :class:`LogPDF` objects.
+    pooled
+        An array-like object of dtype bool, indicating which parameters across
+        the likelihoods are pooled (`True`) or remain unpooled (`False`).
+
+    Example
+    -------
+    ::
+        pooled_log_likelihood = pints.PooledLogPDFs(
+            log_pdfs=[
+                pints.GaussianLogLikelihood(problem1),
+                pints.GaussianLogLikelihood(problem2)],
+            pooled=[False, True])
+    """
+    def __init__(self, log_pdfs, pooled):
+        super(PooledLogPDF, self).__init__()
+
+        # Check input arguments
+        if len(log_pdfs) < 2:
+            raise ValueError(
+                'PooledLogPDFs requires at least two log-pdfs.')
+        for index, pdf in enumerate(log_pdfs):
+            if not isinstance(pdf, pints.LogPDF):
+                raise ValueError(
+                    'All objects passed to PooledLogPDFs must be instances of '
+                    'pints.LogPDF (failed on argument '
+                    + str(index) + ').')
+
+        # Check parameter dimension across log-pdfs
+        self._log_pdfs = log_pdfs
+        n_parameters = self._log_pdfs[0].n_parameters()
+        for pdf in self._log_pdfs:
+            if pdf.n_parameters() != n_parameters:
+                raise ValueError(
+                    'All log-likelihoods passed to PooledLogPDFs must have '
+                    'same dimension.')
+
+        # Check that pooled contains only booleans
+        self._pooled = np.asarray(self._pooled)
+        for p in self._pooled:
+            if not isinstance(p, bool):
+                raise ValueError(
+                    'The parameter `pooled` passed to PooledLogPDFs has to be '
+                    'an array-like object containing exclusively booleans.')
+
+        # Get dimension of search space
+        self._n_pooled = np.sum(self._pooled)
+        n_individuals = len(self._log_pdfs)
+        self._n_unpooled = np.sum(~self._pooled)
+        self._n_parameters = \
+            self._n_pooled + n_individuals * self._n_unpooled
+
+    def __call__(self, parameters):
+        # Get parameters of pooled log-pdf
+        parameters = np.asarray(parameters)
+
+        # Create container for parameters of individuals log-pdf and fill with
+        # pooled parameters
+        params_ind = np.empty(shape=self._n_unpooled + self._n_pooled)
+        params_ind[self._pooled] = parameters[:-self._n_pooled]
+
+        # Compute pdf score
+        total = 0
+        for idx, pdf in enumerate(self._log_pdfs):
+            # Get unpooled parameters for individual
+            params_ind[~self._pooled] = parameters[
+                idx * self._n_unpooled: (idx + 1) * self._n_unpooled]
+
+            # Compute pdf score contribution
+            total += pdf(params_ind)
+        return total
+
+    def evaluateS1(self, parameters):
+        """
+        See :meth:`LogPDF.evaluateS1()`.
+
+        *This method only works if all the underlying :class:`LogPDF` objects
+        implement the optional method :meth:`LogPDF.evaluateS1()`!*
+        """
+        # Get parameters of pooled log-pdf
+        parameters = np.asarray(parameters)
+
+        # Create container for parameters of individuals log-pdf and fill with
+        # pooled parameters
+        params_ind = np.empty(shape=self._n_unpooled + self._n_pooled)
+        params_ind[self._pooled] = parameters[:-self._n_pooled]
+
+        # Compute pdf score and partials
+        total = 0
+        dtotal = np.zeros(shape=self._n_parameters)
+        for idx, pdf in enumerate(self._log_pdfs):
+            # Get unpooled parameters for individual
+            params_ind[~self._pooled] = parameters[
+                idx * self._n_unpooled: (idx + 1) * self._n_unpooled]
+
+            # Compute pdf score and partials for individual
+            score, partials = pdf.evaluateS1(params_ind)
+
+            # Add contributions to score and partials. Note that partials
+            # w.r.t. unpooled parameters receive only one contribution
+            total += score
+            dtotal[idx * self._n_unpooled: (idx + 1) * self._n_unpooled] = \
+                partials[~self._pooled]
+            dtotal[:-self._n_pooled] = partials[self._pooled]
+
+        return total, dtotal
+
+    def n_parameters(self):
+        """ See :meth:`LogPDF.n_parameters()`. """
+        return self._n_parameters
+
+
 class SharedNoiseLogLikelihood(pints.LogPDF):
     """
     Calculates a sum of :class:`pints.LogPDF` objects, defined on potentially
