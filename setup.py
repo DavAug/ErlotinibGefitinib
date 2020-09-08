@@ -13,8 +13,9 @@ setup(
     maintainer='David Augustin',
     maintainer_email='david.augustin@dtc.ox.ac.uk',
 
-    # Packages to include
+    # Packages and data to include
     packages=find_packages(include=('pkpd', 'pkpd.*')),
+    package_data={'pkpd': ['pkpd/model_library/*.xml']},
 
     # List of dependencies
     install_requires=[
