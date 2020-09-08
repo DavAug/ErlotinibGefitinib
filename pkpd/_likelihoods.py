@@ -304,9 +304,20 @@ class PooledLogPDF(pints.LogPDF):
     In general, the search of a :class:`PooledLogPDF` has dimensionality
     :math:`nd_{\text{up}} + d_{\text{p}}`, where :math:`n` is the number of
     individuals, :math:`d_{\text{up}}` is the dimension of the unpooled
-    :math:`psi` parameter, and :math:`d_{\text{up}}` is the dimenion of the
+    :math:`psi` parameters, and :math:`d_{\text{up}}` is the dimension of the
     pooled :math:`\theta` parameter.
-    For :math:`\psi _i` of dimension
+
+    The order of parameters for evaluation is largely kept, and the parameters
+    of individual log-pdfs are concatenated. However, pooled parameters are
+    always prepended. Consider for example two log-pdf with parameters
+    :math:`(\psi _{1,1}, \psi _{1, 2}, \psi _{1,3}, \psi _{1,4})` and
+    :math:`(\psi _{2,1}, \psi _{2, 2}, \psi _{2,3}, \psi _{2,4})`. Pooling the
+    first and the last parameter, i.e.
+    :math:`\theta _1 := \psi _{1,1} = \psi _{2, 1}` and
+    :math:`\theta _4 := \psi _{1,4} = \psi _{2, 4}` results in and expect
+    order of parameters
+    :math:`(\psi _{1, 2}, \psi _{1,3}, \psi _{2, 2}, \psi _{2,3}, \theta _1,
+    \theta _4)`.
 
     Extends :class:`LogPDF`.
 
