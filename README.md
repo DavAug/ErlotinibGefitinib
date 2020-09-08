@@ -16,7 +16,7 @@ Each notebook is well documented, self-contained, and contains interactive visua
 
 The data as well as the models used in the analysis are made publically available in this repository, see DATA.md and MODELS.md. In particular, the models are made accessible in SBML file format, such that they may be used in other modelling projects.
 
-## Notebook structure
+## Notebook references
 
 - [Overview](https://nbviewer.jupyter.org/github/DavAug/ErlotinibGefitinib/blob/master/notebooks/overview/overview.ipynb)
 - Lung cancer (LXF A677)
