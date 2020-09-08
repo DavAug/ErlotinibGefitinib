@@ -15,7 +15,6 @@ setup(
 
     # Packages and data to include
     packages=find_packages(include=('pkpd', 'pkpd.*')),
-    package_data={'pkpd': ['*.xml']},
     include_package_data=True,
 
     # List of dependencies
