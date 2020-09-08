@@ -12,7 +12,7 @@ and gradually build up the inference of the Erlotinib/Gefitinib specific paramet
 
 # Reproducibility
 
-Each notebook is well documented, self-contained, and contains interactive visualisations of the data and modelling results. An out-of-the-box solution to view and run the interactive notebooks is kindly provided by [https://nbviewer.jupyter.org/](https://nbviewer.jupyter.org/) and [binder](https://mybinder.org/). Please note that binder takes a couple of minutes (~3min) to set up the server to enable you to run the notebooks. Alternatively you are welcome to clone and install the repository to run the analysis locally, see INSTALL.md.
+Each notebook is well documented, self-contained, and contains interactive visualisations of the data and modelling results. An out-of-the-box solution to view and run the interactive notebooks is kindly provided by [nbviewer](https://nbviewer.jupyter.org/) and [binder](https://mybinder.org/). Please note that binder takes a couple of minutes (~3min) to set up the server to enable you to run the notebooks. Alternatively you are welcome to clone and install the repository to run the analysis locally, see INSTALL.md.
 
 The data as well as the models used in the analysis are made publically available in this repository, see DATA.md and MODELS.md. In particular, the models are made accessible in SBML file format, such that they may be used in other modelling projects.
 
