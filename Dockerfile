@@ -4,7 +4,8 @@ RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook
 
 # Install libsundials (for numeric integration)
-RUN apt-get install libsundials-dev
+RUN apt-get update && \
+    apt-get -y install libsundials-dev
 
 # Install pkpdapp
 RUN pip install -e .
