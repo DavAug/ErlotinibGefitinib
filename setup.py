@@ -15,7 +15,7 @@ setup(
 
     # Packages and data to include
     packages=find_packages(include=('pkpd', 'pkpd.*')),
-    package_data={'pkpd': ['pkpd/model_library/*.xml']},
+    package_data={'pkpd': ['*.xml']},
 
     # List of dependencies
     install_requires=[
