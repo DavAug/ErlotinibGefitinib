@@ -11,7 +11,7 @@ import pints
 
 def optimise(
         objective_function, optimiser, initial_params, n_runs=1,
-        boundaries=None):
+        boundaries=None, max_iterations=None):
     """
     Returns parameters that optimise the objective function.
     """
@@ -46,11 +46,11 @@ def optimise(
             method=optimiser,
             boundaries=boundaries)
 
-        # Disable logging mode
+        # Configure optimisation routine
         opt.set_log_to_screen(False)
-
-        # Parallelise optimisation
         opt.set_parallel(True)
+        if max_iterations:
+            opt.set_max_iterations(max_iterations)
 
         # Find optimal parameters
         try:
