@@ -9,7 +9,8 @@ import os
 
 from ._likelihoods import (  # noqa
     ConstantAndMultiplicativeGaussianLogLikelihood,
-    FixedEtaLogLikelihoodWrapper
+    FixedEtaLogLikelihoodWrapper,
+    PooledLogPDF
 )
 
 from ._models import (  # noqa
