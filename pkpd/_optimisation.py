@@ -19,7 +19,7 @@ def optimise(
         raise ValueError(
             'Objective function has to be an instance of `pints.ErrorMeasure` '
             'or pints.LogPDF.')
-    if not isinstance(optimiser, pints.Optimiser):
+    if not issubclass(optimiser, pints.Optimiser):
         raise ValueError(
             'Optimiser has to be an instance of `pints.Optimiser`.')
 
@@ -42,21 +42,22 @@ def optimise(
 
     # Run optimisation multiple times
     for run_id, init_p in enumerate(initial_params):
-        optimiser = pints.OptimisationController(
+        opt = pints.OptimisationController(
             function=objective_function,
             x0=init_p,
-            method=optimiser)
+            method=optimiser,
+            boundaries=boundaries)
 
         # Disable logging mode
-        optimiser.set_log_to_screen(False)
+        opt.set_log_to_screen(False)
 
         # Parallelise optimisation
-        optimiser.set_parallel(True)
+        opt.set_parallel(True)
 
         # Find optimal parameters
         try:
-            estimates, score = optimiser.run()
-        except:
+            estimates, score = opt.run()
+        except Exception:
             # If inference breaks fill estimates with nan
             estimates = np.array([np.nan, np.nan, np.nan])
             score = np.nan

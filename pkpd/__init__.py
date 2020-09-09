@@ -17,6 +17,10 @@ from ._models import (  # noqa
     PharmacodynamicModel
 )
 
+from ._optimisation import (  # noqa
+    optimise
+)
+
 
 class ModelLibrary(object):
     """
