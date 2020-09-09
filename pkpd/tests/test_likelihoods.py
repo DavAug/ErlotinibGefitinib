@@ -812,7 +812,7 @@ class TestPooledLogPDF(unittest.TestCase):
         self.assertEqual(dscore[1], dscore_2[0])
         self.assertEqual(dscore[2], dscore_1[1] + dscore_2[1])
 
-def test_evaluateS1_pooled(self):
+    def test_evaluateS1_pooled(self):
         log_pdfs = [self.log_pdf_1, self.log_pdf_2]
         pooled = [True, True]
         log_pdf = pkpd.PooledLogPDF(log_pdfs, pooled)
