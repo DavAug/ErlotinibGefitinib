@@ -10,7 +10,13 @@ introduce a robust and reproducible PKPD modelling approach.
 The analysis of the data, and the modelling of the PKPD is organised in Jupyter notebooks. We start with modelling the control group, 
 and gradually build up the inference of the Erlotinib/Gefitinib specific parameters. This will allow us to explore efficacious dosing regimens across individuals *in silico*.
 
-## Notebook structure
+## Reproducibility
+
+Each notebook is well documented, self-contained, and contains interactive visualisations of the data and modelling results. An out-of-the-box solution to view and run the interactive notebooks is kindly provided by [nbviewer](https://nbviewer.jupyter.org/) and [binder](https://mybinder.org/). Please note that binder takes a couple of minutes (~3min) to set up the server to enable you to run the notebooks. Alternatively you are welcome to clone and install the repository to run the analysis locally, see INSTALL.md.
+
+The data as well as the models used in the analysis are made publically available in this repository, see DATA.md and MODELS.md. In particular, the models are made accessible in SBML file format, such that they may be used in other modelling projects.
+
+## Notebook references
 
 - [Overview](https://nbviewer.jupyter.org/github/DavAug/ErlotinibGefitinib/blob/master/notebooks/overview/overview.ipynb)
 - Lung cancer (LXF A677)

@@ -2,6 +2,9 @@
 source = pkpd
 omit = 
     pkpd/tests/*
+    pkpd/inference.py
+    pkpd/model.py
+    pkpd/utils.py
 
 [report]
 exclude_lines =

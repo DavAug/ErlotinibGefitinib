@@ -76,9 +76,9 @@ def run_unit_tests():
 if __name__ == '__main__':
     # Set up argument parsing
     parser = argparse.ArgumentParser(
-        description='Run unit tests for Pints.',
+        description='Run tests for ErlotinibGefitinib.',
         epilog='To run individual unit tests, use e.g.'
-               ' $ pkpd/tests/test_toy_logistic_model.py',
+               ' $ pkpd/tests/test_likelihoods.py',
     )
     # Unit tests
     parser.add_argument(

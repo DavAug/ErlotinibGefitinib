@@ -24,6 +24,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+          
+      - name: install sundials
+        run: |
+          sudo apt-get install libsundials-dev
 
       - name: install pkpd
         run: |

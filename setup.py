@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 # Go!
 setup(
-    # Module name (lowercase)
+    # Module name
     name='pkpd',
     version='0.0.1dev0',
 
@@ -13,20 +13,18 @@ setup(
     maintainer='David Augustin',
     maintainer_email='david.augustin@dtc.ox.ac.uk',
 
-    # Packages to include
+    # Packages and data to include
     packages=find_packages(include=('pkpd', 'pkpd.*')),
+    include_package_data=True,
 
     # List of dependencies
     install_requires=[
         'jupyter==1.0.0',
-        'myokit==1.30.6',
+        'myokit>=1.31',
         'numpy>=1.8',
         'pandas>=0.24',
-        'pints @ git+git://github.com/pints-team/pints.git#egg=pints',
+        'pints>=0.3',
         'plotly==4.8.1',
         'tqdm==4.46.1'
     ],
-    dependency_links=[
-     "git+git://github.com/pints-team/pints.git#egg=pints-0.2.2",
-    ]
 )
