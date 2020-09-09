@@ -70,6 +70,14 @@ class TestOptimise(unittest.TestCase):
             ValueError, 'Boundaries have to be',
             pkpd.optimise, self.error, pints.CMAES, self.params, 1, boundaries)
 
+    def test_nan_when_fails(self):
+        # CMAES return NAN for 1-dim problems
+        params, _ = pkpd.optimise(
+            self.error, pints.CMAES, self.params, 1, self.boundaries)
+
+        self.assertEqual(params.shape, (1, 1))
+        np.testing.assert_equal(params[0, 0], np.nan)
+
     def test_call(self):
         # Test single run
         params, _ = pkpd.optimise(
