@@ -35,8 +35,6 @@ def optimise(
                 'Boundaries have to be an instance of `pints.Bouandries`.')
 
     # Define container for estimates and scores
-    # Shape (n_runs, n_parameters)
-
     parameters = np.empty(shape=(n_runs, n_parameters))
     scores = np.empty(shape=n_runs)
 
@@ -59,7 +57,7 @@ def optimise(
             estimates, score = opt.run()
         except Exception:
             # If inference breaks fill estimates with nan
-            estimates = np.array([np.nan, np.nan, np.nan])
+            estimates = np.array([np.nan] * n_parameters)
             score = np.nan
 
         # Save estimates and score
