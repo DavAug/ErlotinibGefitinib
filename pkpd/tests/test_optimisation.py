@@ -84,7 +84,7 @@ class TestOptimise(unittest.TestCase):
             self.error, pints.XNES, self.params, 1, self.boundaries)
 
         self.assertEqual(params.shape, (1, 1))
-        self.assertAlmostEqual(params[0, 0], self.true_params[0])
+        self.assertAlmostEqual(params[0, 0], self.true_params[0], 1)
 
         # Test multiple runs
         initial_params = [[2], [3]]
@@ -92,8 +92,8 @@ class TestOptimise(unittest.TestCase):
             self.error, pints.XNES, initial_params, 2, self.boundaries)
 
         self.assertEqual(params.shape, (2, 1))
-        self.assertAlmostEqual(params[0, 0], self.true_params[0])
-        self.assertAlmostEqual(params[1, 0], self.true_params[0])
+        self.assertAlmostEqual(params[0, 0], self.true_params[0], 1)
+        self.assertAlmostEqual(params[1, 0], self.true_params[0], 1)
 
 
 if __name__ == '__main__':
