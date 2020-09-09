@@ -348,8 +348,8 @@ class PooledLogPDF(pints.LogPDF):
         for index, pdf in enumerate(log_pdfs):
             if not isinstance(pdf, pints.LogPDF):
                 raise ValueError(
-                    'All log-pdfs passed to PooledLogPDFs must be instances of '
-                    'pints.LogPDF (failed on argument '
+                    'All log-pdfs passed to PooledLogPDFs must be instances of'
+                    ' pints.LogPDF (failed on argument '
                     + str(index) + ').')
 
         # Check parameter dimension across log-pdfs
