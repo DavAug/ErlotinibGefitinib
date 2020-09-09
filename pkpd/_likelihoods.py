@@ -344,11 +344,11 @@ class PooledLogPDF(pints.LogPDF):
         # Check input arguments
         if len(log_pdfs) < 2:
             raise ValueError(
-                'PooledLogPDFs requires at least two log-pdfs.')
+                'PooledLogPDF requires at least two log-pdfs.')
         for index, pdf in enumerate(log_pdfs):
             if not isinstance(pdf, pints.LogPDF):
                 raise ValueError(
-                    'All objects passed to PooledLogPDFs must be instances of '
+                    'All log-pdfs passed to PooledLogPDFs must be instances of '
                     'pints.LogPDF (failed on argument '
                     + str(index) + ').')
 
@@ -358,16 +358,22 @@ class PooledLogPDF(pints.LogPDF):
         for pdf in self._log_pdfs:
             if pdf.n_parameters() != n_parameters:
                 raise ValueError(
-                    'All log-likelihoods passed to PooledLogPDFs must have '
+                    'All log-pdfs passed to PooledLogPDFs must have '
                     'same dimension.')
 
+        # Check that pooled matches number of parameters
+        self._pooled = np.asarray(pooled)
+        if len(self._pooled) != n_parameters:
+            raise ValueError(
+                'The array-like input `pooled` needs to have the same length '
+                'as the number of parameters of the individual log-pdfs.')
+
         # Check that pooled contains only booleans
-        self._pooled = np.asarray(self._pooled)
         for p in self._pooled:
-            if not isinstance(p, bool):
+            if not isinstance(p, np.bool_):
                 raise ValueError(
-                    'The parameter `pooled` passed to PooledLogPDFs has to be '
-                    'an array-like object containing exclusively booleans.')
+                    'The array-like input `pooled` passed to PooledLogPDFs '
+                    'has to contain booleans exclusively.')
 
         # Get dimension of search space
         self._n_pooled = np.sum(self._pooled)
@@ -383,7 +389,8 @@ class PooledLogPDF(pints.LogPDF):
         # Create container for parameters of individuals log-pdf and fill with
         # pooled parameters
         params_ind = np.empty(shape=self._n_unpooled + self._n_pooled)
-        params_ind[self._pooled] = parameters[:-self._n_pooled]
+        if self._n_pooled > 0:
+            params_ind[self._pooled] = parameters[-self._n_pooled:]
 
         # Compute pdf score
         total = 0
@@ -409,7 +416,8 @@ class PooledLogPDF(pints.LogPDF):
         # Create container for parameters of individuals log-pdf and fill with
         # pooled parameters
         params_ind = np.empty(shape=self._n_unpooled + self._n_pooled)
-        params_ind[self._pooled] = parameters[:-self._n_pooled]
+        if self._n_pooled > 0:
+            params_ind[self._pooled] = parameters[-self._n_pooled:]
 
         # Compute pdf score and partials
         total = 0
@@ -427,7 +435,8 @@ class PooledLogPDF(pints.LogPDF):
             total += score
             dtotal[idx * self._n_unpooled: (idx + 1) * self._n_unpooled] = \
                 partials[~self._pooled]
-            dtotal[:-self._n_pooled] = partials[self._pooled]
+            if self._n_pooled > 0:
+                dtotal[-self._n_pooled:] += partials[self._pooled]
 
         return total, dtotal
 
