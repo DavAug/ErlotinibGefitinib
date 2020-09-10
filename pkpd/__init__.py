@@ -21,6 +21,10 @@ from ._optimisation import (  # noqa
     optimise
 )
 
+from ._sampling import (  # noqa
+    sample
+)
+
 
 class ModelLibrary(object):
     """
