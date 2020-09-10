@@ -18,7 +18,7 @@ def optimise(
     if not isinstance(objective_function, (pints.ErrorMeasure, pints.LogPDF)):
         raise ValueError(
             'Objective function has to be an instance of `pints.ErrorMeasure` '
-            'or pints.LogPDF.')
+            'or `pints.LogPDF`.')
     if not issubclass(optimiser, pints.Optimiser):
         raise ValueError(
             'Optimiser has to be an instance of `pints.Optimiser`.')
