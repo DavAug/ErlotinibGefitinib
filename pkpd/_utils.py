@@ -8,24 +8,52 @@
 import numpy as np
 
 
-def find_gaussian_hyperparams(left, right):
+def get_median_parameters(parameters, pooled=None):
     """
-    Finds mean and standard deviation of Gaussian prior such that the 2
-    sigma intervals are the values `left` and `right`. As a result, about
-    95% of the prbability mass will be within the defined interval.
+    Returns median parameters across runs.
+
+    For pooled parameters the median across runs and individuals is returned.
+    The median parmeters are reordered such that pooled parameters always come
+    last.
+
+    Arguments:
+        parameters -- Parameters of individuals across individuals and runs.
+                      Shape: (n_individuals, n_runs, n_parameters)
+
+    Returns:
+        Median parameters across runs (and if pooled, also across individuals)
+        of shape (n_unpooled, n_pooled).
     """
-    # Compute width of interval
-    width = abs(left) + abs(right)
+    parameters = np.asarray(parameters)
+    if parameters.ndims != 3:
+        raise ValueError(
+            'Parameters has to be of dimension 3. Expected shape: '
+            '(n_individuals, n_runs, n_parameters)')
+    pooled = np.asarray(pooled)
+    if len(pooled) != parameters.shape[2]:
+        raise ValueError(
+            'The array-like object `pooled` is expected to have the shape '
+            '(n_parameters,)')
+    if pooled.dtype != np.bool_:
+        raise TypeError(
+            'The array-like object has to contain exclusively Booleans.')
 
-    # Compute mean
-    mean = left + width / 2
+    n_pooled = np.sum(pooled)
+    n_ids = parameters.shape[1]
+    n_unpooled = np.sum(~pooled)
+    medians = np.empty(shape=n_ids * n_unpooled + n_pooled)
 
-    # Compute standard deviation
-    std = width / 4
+    # Get unpooled medians
+    medians[:-n_pooled] = np.median(
+        parameters[:, :, ~pooled], axis=1).flatten()
 
-    return mean, std
+    # Get pooled medians
+    medians[-n_pooled:] = np.median(parameters[:, :, pooled], axis=(0, 1))
+
+    return medians
 
 
+'''
 def compute_cumulative_dose_amount(
         times, doses, end_exp, duration=1E-03, start_exp=0):
     """
@@ -65,3 +93,4 @@ def compute_cumulative_dose_amount(
     cum_doses[-1] = np.cumsum(doses)[-1]  # final dose level
 
     return cum_times, cum_doses
+'''
