@@ -8,7 +8,7 @@
 import numpy as np
 
 
-def get_median_parameters(parameters, pooled=None):
+def get_median_parameters(parameters, pooled):
     """
     Returns median parameters across runs.
 
@@ -25,7 +25,7 @@ def get_median_parameters(parameters, pooled=None):
         of shape (n_unpooled, n_pooled).
     """
     parameters = np.asarray(parameters)
-    if parameters.ndims != 3:
+    if parameters.ndim != 3:
         raise ValueError(
             'Parameters has to be of dimension 3. Expected shape: '
             '(n_individuals, n_runs, n_parameters)')
@@ -39,16 +39,17 @@ def get_median_parameters(parameters, pooled=None):
             'The array-like object has to contain exclusively Booleans.')
 
     n_pooled = np.sum(pooled)
-    n_ids = parameters.shape[1]
+    n_ids = parameters.shape[0]
     n_unpooled = np.sum(~pooled)
     medians = np.empty(shape=n_ids * n_unpooled + n_pooled)
 
     # Get unpooled medians
-    medians[:-n_pooled] = np.median(
+    medians[:n_ids * n_unpooled] = np.median(
         parameters[:, :, ~pooled], axis=1).flatten()
 
     # Get pooled medians
-    medians[-n_pooled:] = np.median(parameters[:, :, pooled], axis=(0, 1))
+    if n_pooled > 0:
+        medians[-n_pooled:] = np.median(parameters[:, :, pooled], axis=(0, 1))
 
     return medians
 
