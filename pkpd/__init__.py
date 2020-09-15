@@ -25,6 +25,10 @@ from ._sampling import (  # noqa
     sample
 )
 
+from ._utils import (  # noqa
+    get_median_parameters
+)
+
 
 class ModelLibrary(object):
     """
