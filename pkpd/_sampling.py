@@ -34,8 +34,9 @@ def sample(
         log_pdf=log_pdf, chains=n_chains, x0=initial_params, method=sampler)
 
     # Configure sampling routine
-    sampler.set_log_to_screen(False)
-    sampler.set_parallel(True)
+    sampler.set_log_to_screen(True)
+    sampler.set_log_interval(iters=1000, warm_up=3)
+    # sampler.set_parallel(True)
     if max_iterations:
         sampler.set_max_iterations(max_iterations)
 
