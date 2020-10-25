@@ -39,6 +39,8 @@ def sample(
     # sampler.set_parallel(True)
     if max_iterations:
         sampler.set_max_iterations(max_iterations)
+    if warm_up:
+        sampler.set_initial_phase_iterations(warm_up)
 
     # Find optimal parameters
     traces = np.asarray(sampler.run())
