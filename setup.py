@@ -25,6 +25,6 @@ setup(
         'pandas>=0.24',
         'pints>=0.3',
         'plotly==4.8.1',
-        'tqdm==4.46.1'
+        'tqdm==4.66.3'
     ],
 )
